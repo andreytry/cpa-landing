@@ -120,6 +120,8 @@ section{padding:104px 0}
 .card .cb{padding:20px}
 .demonote{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--on-ink-2);margin-top:22px}
 
+.ai-convai-host{min-height:420px;display:flex;align-items:stretch;justify-content:center;padding:14px;background:var(--paper2)}
+.ai-convai-host elevenlabs-convai{width:100%}
 .chat{height:296px;overflow-y:auto;padding:18px;background:var(--paper2);display:flex;flex-direction:column;gap:11px}
 .msg{max-width:86%;font-size:15px;line-height:1.5;padding:12px 15px}
 .msg.u{align-self:flex-end;background:var(--ink);color:#fff}
@@ -300,20 +302,25 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
   <div class="pane" data-pane="chat" data-open="true">
     <div class="grid2">
       <div class="card">
-        <div class="ch">Miller &amp; Reyes CPA &mdash; web-assistant</div>
-        <div class="chat" id="chat" aria-live="polite"></div>
-        <div class="sugg" id="sugg"></div>
-        <form class="chatform" id="chatform">
-          <input id="chatin" placeholder="Type a question…" autocomplete="off" aria-label="Message">
-          <button type="submit">Send</button>
-        </form>
+        <div class="ch">Miller &amp; Reyes CPA &mdash; web-assistant &middot; live</div>
+        <div class="ai-convai-host">
+          <elevenlabs-convai agent-id="agent_8401kyjnaj6dfertra9cdvxjnt5m"></elevenlabs-convai>
+        </div>
       </div>
       <div class="card">
-        <div class="ch">What the firm sees</div>
-        <div class="cb"><div id="chatlog"><div class="empty">Ask the assistant something.</div></div></div>
+        <div class="ch">What it handles</div>
+        <div class="cb">
+          <div class="log-item"><div class="st">Answers</div><div class="lb">Can you do my return &mdash; freelancer, LLC, S-corp, small business</div></div>
+          <div class="log-item"><div class="st">Answers</div><div class="lb">Filing deadlines and what an extension actually buys you</div></div>
+          <div class="log-item"><div class="st">Answers</div><div class="lb">Which documents to bring before the first meeting</div></div>
+          <div class="log-item"><div class="st">Answers</div><div class="lb">Pricing bands, then the one question that moves the number</div></div>
+          <div class="log-item"><div class="st">Does</div><div class="lb">Takes the full onboarding and files the record for the firm</div></div>
+          <div class="log-item"><div class="st">Escalates</div><div class="lb">IRS notices go straight to a human &mdash; it will not advise</div></div>
+          <div class="log-item"><div class="st">Speaks</div><div class="lb">English and Spanish, switching mid-conversation</div></div>
+        </div>
       </div>
     </div>
-    <p class="demonote">Demo &mdash; sample firm, sample data</p>
+    <p class="demonote">Live assistant &mdash; sample firm. Ask it anything in English or Spanish.</p>
   </div>
 
   <div class="pane" data-pane="onb">
@@ -345,7 +352,7 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
         </div>
       </div>
     </div>
-    <p class="demonote">Demo &mdash; sample firm, sample data</p>
+    <p class="demonote">Illustration &mdash; scripted walkthrough, not live output</p>
   </div>
 
   <div class="pane" data-pane="doc">
@@ -368,7 +375,7 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
         <div class="cb"><div id="dout"><div class="empty">Run the follow-up.</div></div></div>
       </div>
     </div>
-    <p class="demonote">Demo &mdash; sample firm, sample data</p>
+    <p class="demonote">Illustration &mdash; scripted walkthrough, not live output</p>
   </div>
 </div></section>
 
@@ -433,33 +440,7 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
     document.querySelectorAll('.pane').forEach(function(p){p.setAttribute('data-open',p.dataset.pane===t.dataset.tab?'true':'false');});
   });});
 
-  /* web-assistant */
-  var KB=[
-    {k:['price','cost','how much','fee','charge','rate'],a:"Monthly bookkeeping for a single-member LLC starts at $350/month, including the annual return. Catch-up work is quoted once we see how many months are open. How many transactions a month are you running?",cap:'Pricing enquiry'},
-    {k:['deadline','due','when','extension','file by'],a:"For a calendar-year LLC taxed as a partnership the federal return is due 15 March; single-member LLCs file with your personal return on 15 April. An extension buys six months to file, not to pay. Which entity type are you?",cap:'Deadline question'},
-    {k:['document','bring','need','upload','paperwork'],a:"For a first meeting: last year's return, bank and card statements for the period, payroll summaries if you have staff, and your EIN letter. You'll get a secure upload link once we book.",cap:'Document requirements'},
-    {k:['book','appointment','meeting','call','schedule','consult'],a:"I can put you in with Elena on Thursday at 10:00 or Friday at 14:30. Which suits? I'll need your name, business name and email to confirm.",cap:'Booking intent'},
-    {k:['payroll','employee','staff','w-2','1099'],a:"Yes — we run payroll for firms from two to about forty staff, including quarterly filings and year-end W-2s and 1099s. How many people are on the books?",cap:'Payroll enquiry'},
-    {k:['s-corp','s corp','llc','entity','structure'],a:"The S-Corp election usually starts making sense once net profit clears roughly $50k, because it cuts self-employment tax on the distribution side. It also adds payroll obligations. What's your rough net for the year?",cap:'Entity structuring'},
-    {k:['audit','irs','letter','notice'],a:"IRS notices are time-sensitive, so let's not handle that here. I'm flagging this for Elena now — she'll call you today. What's the best number?",cap:'IRS notice — escalated'},
-    {k:['spanish','español','habla'],a:"Sí, claro — atendemos en español e inglés. ¿Prefiere que sigamos en español?",cap:'Spanish-language client'},
-    {k:['quickbooks','xero','software'],a:"We work in QuickBooks Online and can migrate you from Xero, Wave or spreadsheets without losing history. What are you on now?",cap:'Software / migration'}
-  ];
-  var SUGG=['How much is monthly bookkeeping?','When is my LLC return due?','I got an IRS letter','Can I book a call?'];
-  var chat=document.getElementById('chat'),log=document.getElementById('chatlog'),
-      form=document.getElementById('chatform'),inp=document.getElementById('chatin'),
-      suggbox=document.getElementById('sugg'),captures=[];
-  function add(text,who){var d=document.createElement('div');d.className='msg '+who;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
-  function stamp(){var n=new Date();return n.getHours()+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');}
-  function capture(l){captures.push({l:l,t:stamp()});
-    log.innerHTML=captures.map(function(c){return '<div class="log-item"><div class="st">Captured '+c.t+'</div><div class="lb">'+c.l+'</div></div>';}).join('');}
-  function answer(q){var s=q.toLowerCase(),hit=null;
-    for(var i=0;i<KB.length;i++){for(var j=0;j<KB[i].k.length;j++){if(s.indexOf(KB[i].k[j])>-1){hit=KB[i];break;}}if(hit)break;}
-    if(!hit)hit={a:"That one needs a look at your actual numbers. I can book you fifteen minutes with Elena this week. What's your business name?",cap:'Routed to a human'};
-    var typing=add('…','b');setTimeout(function(){typing.textContent=hit.a;capture(hit.cap);},600);}
-  SUGG.forEach(function(s){var b=document.createElement('button');b.type='button';b.textContent=s;b.addEventListener('click',function(){add(s,'u');answer(s);});suggbox.appendChild(b);});
-  form.addEventListener('submit',function(e){e.preventDefault();var v=inp.value.trim();if(!v)return;add(v,'u');inp.value='';answer(v);});
-  add("Hi — I'm the assistant for Miller & Reyes CPA. I can answer questions about our services, deadlines and pricing, and book you in with an accountant. What do you need?",'b');
+  /* web-assistant: live ElevenLabs ConvAI widget, see <elevenlabs-convai> above */
 
   /* onboarding */
   var orun=document.getElementById('orun'),osteps=document.getElementById('osteps'),omail=document.getElementById('omail');
@@ -488,4 +469,5 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
   });
 })();
 </script>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body></html>
