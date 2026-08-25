@@ -507,7 +507,7 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
 <script type="text/javascript">
 (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
 Cal("init", "growwithai", {origin:"https://app.cal.com"});
-(function(){
+function bmInit(){
   var CAL_LINK = "andrew-try-wnvwlh/grow-with-ai";
   var overlay = document.getElementById("book-modal");
   var closeBtn = document.getElementById("bm-close");
@@ -545,7 +545,8 @@ Cal("init", "growwithai", {origin:"https://app.cal.com"});
   overlay.addEventListener("click", function(ev){ if (ev.target === overlay) close(); });
   document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && overlay.classList.contains("open")) close(); });
   if (location.hash === "#book-now") open();
-})();
+}
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", bmInit); } else { bmInit(); }
 </script>
 <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 <div class="bm-overlay" id="book-modal" role="dialog" aria-modal="true" aria-label="Book a 20-minute call" hidden>
