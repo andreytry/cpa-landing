@@ -186,6 +186,11 @@ section{padding:104px 0}
 .book p{margin:20px auto 0;font-size:clamp(16.5px,1.4vw,19px);color:var(--on-ink);max-width:56ch}
 .book .slot{margin-top:40px;background:var(--paper);color:var(--ink);padding:34px;max-width:760px;margin-left:auto;margin-right:auto;border:1px solid var(--paper2)}
 .book .slot .ph{font-family:var(--mono);font-size:12px;color:#444;margin-bottom:20px;letter-spacing:.04em}
+#cal-inline{width:100%;min-height:660px;overflow:auto;background:var(--paper)}
+#cal-inline iframe{width:100%!important;min-height:660px;border:0}
+.book .slot .cal-fallback{font-family:var(--mono);font-size:12px;color:#444;margin-top:18px;letter-spacing:.04em}
+.book .slot .cal-fallback a{color:#000;text-decoration:underline}
+@media(max-width:640px){#cal-inline,#cal-inline iframe{min-height:900px}}
 
 footer{background:var(--ink2);border-top:1px solid var(--rule);padding:52px 0;font-size:14.5px;color:var(--on-ink-2)}
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:22px}
@@ -398,8 +403,10 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
   <h2>See who&rsquo;s looking in your city.</h2>
   <p>In 20 minutes we&rsquo;ll show you, live, exactly which businesses in your area are looking for an accountant right now.</p>
   <div class="slot">
-    <div class="ph">[ Booking widget &mdash; paste your Google Calendar appointment schedule embed here ]</div>
-    <a class="btn btn-p" href="mailto:andrew.try@ai-process.net?subject=Book%20a%20call%20-%20aiProcess">Book your 20-minute call</a>
+    <div class="ph">Pick a time &mdash; live calendar</div>
+    <div id="cal-inline" data-cal-embed></div>
+    <noscript><p style="font-family:var(--mono);font-size:13px;color:#444">JavaScript is disabled &mdash; <a href="https://cal.com/andrew-try-wnvwlh/grow-with-ai">open the booking page</a>.</p></noscript>
+    <p class="cal-fallback">Calendar not loading? <a href="https://cal.com/andrew-try-wnvwlh/grow-with-ai" target="_blank" rel="noopener">Open the booking page &rarr;</a></p>
     <p class="intake" id="intake-email" style="margin-top:18px;font-size:15px;line-height:1.6;color:#cfd6e4">Prefer email? <strong>Intake inbox:</strong> <a href="mailto:andrew.try@ai-process.net?subject=CPA%20intake%20enquiry">andrew.try@ai-process.net</a> &mdash; write to us and you will get a reply with exactly what we need to onboard you.</p>
   </div>
 </div></section>
@@ -483,6 +490,17 @@ footer .fine{width:100%;border-top:1px solid var(--rule);padding-top:18px;margin
       drun.disabled=false;drun.textContent='Run follow-up again';},800);
   });
 })();
+</script>
+<!-- Cal.com inline booking embed - AI for Financial Experts (20 min) -->
+<script type="text/javascript">
+(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+Cal("init", "growwithai", {origin:"https://app.cal.com"});
+Cal.ns.growwithai("inline", {
+  elementOrSelector:"#cal-inline",
+  config: {"layout":"month_view","theme":"light"},
+  calLink: "andrew-try-wnvwlh/grow-with-ai"
+});
+Cal.ns.growwithai("ui", {"hideEventTypeDetails":false,"layout":"month_view","theme":"light"});
 </script>
 <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body></html>
