@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aiProcess Accounting Partners — Tax, Bookkeeping &amp; Payroll in Miami</title>
+<meta name="description" content="Owner-managed businesses in Miami trust aiProcess Accounting Partners for tax preparation, monthly bookkeeping and payroll — in English and Spanish.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --navy:#122A46; --navy-2:#0C1E33; --ink:#1D2B3A; --ink-2:#51606F; --line:#DCE3E9;
+  --paper:#FBFAF7; --card:#FFFFFF; --gold:#B98A2F; --gold-soft:#F4EAD3; --green:#1E6A4E;
+  --disp:"Fraunces", Georgia, serif;
+  --body:"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.6;font-size:16.5px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+a{color:var(--navy)}
+.btn{display:inline-block;background:var(--navy);color:#fff;text-decoration:none;font-weight:600;font-size:15.5px;padding:13px 26px;border-radius:4px;border:none;cursor:pointer}
+.btn:hover{background:var(--navy-2)}
+.btn.ghost{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+/* nav */
+nav{position:sticky;top:0;background:rgba(251,250,247,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);z-index:50}
+.nav-in{display:flex;align-items:center;gap:28px;padding:14px 0}
+.logo{font-family:var(--disp);font-size:20px;font-weight:600;color:var(--navy);text-decoration:none;letter-spacing:.01em}
+.logo span{color:var(--gold)}
+.nav-links{margin-left:auto;display:flex;gap:22px;align-items:center}
+.nav-links a{text-decoration:none;font-size:15px;font-weight:500;color:var(--ink-2)}
+.nav-links a:hover{color:var(--navy)}
+@media(max-width:720px){.nav-links a:not(.btn){display:none}}
+.nav-links .btn{padding:9px 18px;font-size:14.5px}
+/* hero */
+.hero{padding:88px 0 64px;background:linear-gradient(180deg,#F3EFE6 0%,var(--paper) 100%)}
+.eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(34px,5.2vw,54px);line-height:1.08;margin:0 0 20px;color:var(--navy);max-width:17ch;text-wrap:balance}
+.hero p.lead{font-size:19px;color:var(--ink-2);max-width:56ch;margin:0 0 30px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-note{font-size:14px;color:var(--ink-2);margin-top:18px}
+/* deadline strip */
+.strip{background:var(--navy);color:#E8EDF3}
+.strip .wrap{display:flex;flex-wrap:wrap;gap:8px 40px;padding:16px 24px;font-size:14.5px}
+.strip b{color:#fff;font-weight:600}
+.strip .d{display:flex;gap:8px;align-items:baseline}
+.strip .d em{font-style:normal;color:var(--gold);font-weight:700}
+/* sections */
+section{padding:72px 0}
+h2{font-family:var(--disp);font-weight:600;font-size:clamp(26px,3.4vw,36px);color:var(--navy);margin:0 0 12px;text-wrap:balance}
+.sub{color:var(--ink-2);max-width:62ch;margin:0 0 40px;font-size:17px}
+.cards{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:26px 26px 24px;box-shadow:0 1px 2px rgba(18,42,70,.04)}
+.card h3{font-family:var(--disp);font-size:20px;font-weight:600;color:var(--navy);margin:0 0 10px}
+.card p{margin:0;color:var(--ink-2);font-size:15.5px}
+.card ul{margin:12px 0 0;padding-left:18px;color:var(--ink-2);font-size:15px}
+.card li{margin-bottom:5px}
+/* who */
+.who{background:#F3EFE6}
+.who-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.who-item{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px;font-size:15px;color:var(--ink);display:flex;gap:10px;align-items:flex-start}
+.who-item::before{content:"";flex:0 0 8px;height:8px;border-radius:50%;background:var(--gold);margin-top:8px}
+/* assistant */
+.assistant{background:var(--navy);color:#E8EDF3}
+.assistant h2{color:#fff}
+.assistant .sub{color:#B9C5D2}
+.badge{display:inline-block;background:var(--gold-soft);color:#7A5A17;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:3px;margin-bottom:14px}
+.convai-host{background:#fff;border-radius:8px;min-height:420px;display:flex;align-items:stretch;justify-content:center;padding:12px}
+.convai-host elevenlabs-convai{width:100%}
+.assist-cols{display:grid;gap:36px;grid-template-columns:1fr;align-items:start}
+@media(min-width:900px){.assist-cols{grid-template-columns:1fr 1.1fr}}
+.assist-points{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:12px}
+.assist-points li{padding-left:26px;position:relative;font-size:15.5px;color:#C8D2DD}
+.assist-points li::before{content:"—";position:absolute;left:0;color:var(--gold)}
+/* contact */
+.contact-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.contact-grid .card p{font-size:16px;color:var(--ink)}
+.contact-grid .card .lbl{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+.contact-grid a{font-weight:600}
+/* footer */
+footer{border-top:1px solid var(--line);padding:30px 0 44px;font-size:13.5px;color:var(--ink-2)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 32px;justify-content:space-between}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="logo" href="#top">aiProcess <span>Accounting Partners</span></a>
+    <div class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#who">Who we serve</a>
+      <a href="#assistant">Ask us anything</a>
+      <a href="#contact">Contact</a>
+      <a class="btn" href="https://cal.com/andrew-try-wnvwlh/grow-with-ai" data-cal-namespace="growwithai" data-cal-link="andrew-try-wnvwlh/grow-with-ai" data-cal-config='{"layout":"month_view","theme":"light"}'>Book a call</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">Tax · Bookkeeping · Payroll — Miami, FL</p>
+    <h1>Your books closed, your filings on time, in English y en español.</h1>
+    <p class="lead">We serve owner-managed businesses from one founder to about forty on payroll — returns prepared and filed, monthly bookkeeping in QuickBooks Online, payroll run and reported. You run the business; we keep it clean with the IRS and the State of Florida.</p>
+    <div class="hero-ctas">
+      <a class="btn" href="https://cal.com/andrew-try-wnvwlh/grow-with-ai" data-cal-namespace="growwithai" data-cal-link="andrew-try-wnvwlh/grow-with-ai" data-cal-config='{"layout":"month_view","theme":"light"}'>Book a free 20-minute call</a>
+      <a class="btn ghost" href="#assistant">Ask a question now</a>
+    </div>
+    <p class="hero-note">Open after hours: our assistant below answers real questions any time, in English or Spanish.</p>
+  </div>
+</header>
+
+<div class="strip" aria-label="Key filing deadlines">
+  <div class="wrap">
+    <span class="d"><em>Mar 15</em><b>1065 / 1120-S</b> partnership &amp; S-corp returns</span>
+    <span class="d"><em>Apr 15</em><b>1040 / 1120</b> individual &amp; C-corp returns</span>
+    <span class="d"><em>May 1</em><b>Florida Annual Report</b> — $400 late fee after</span>
+    <span class="d"><em>Quarterly</em><b>941 payroll filings</b> &amp; estimated payments</span>
+  </div>
+</div>
+
+<section id="services">
+  <div class="wrap">
+    <h2>What we do</h2>
+    <p class="sub">Three services, usually taken together. No hourly surprises — you know your monthly number before we start.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Tax preparation &amp; filing</h3>
+        <p>Individual 1040 and Schedule C, 1065 partnerships, 1120-S and 1120 corporate returns — prepared, reviewed and e-filed, with extensions handled when you need the time.</p>
+        <ul>
+          <li>Rental property (Schedule E) and crypto in scope</li>
+          <li>Quarterly estimated payments calculated for you</li>
+          <li>Prior-year catch-up and amended returns</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Monthly bookkeeping</h3>
+        <p>QuickBooks Online done properly: bank and card reconciliation, categorisation, month-end close — and catch-up work if you are months or years behind.</p>
+        <ul>
+          <li>Clean books that make tax season boring</li>
+          <li>Monthly close you can actually read</li>
+          <li>Receipt and document follow-up handled for you</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Payroll</h3>
+        <p>Payroll run on schedule, 941 filed quarterly, 940 annually, W-2s and 1099-NECs out by the end of January — including reasonable-compensation payroll for S-corp owners.</p>
+        <ul>
+          <li>Employees and subcontractors both covered</li>
+          <li>New-hire and year-end reporting included</li>
+          <li>One number, no per-filing add-ons</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="who" id="who">
+  <div class="wrap">
+    <h2>Who we serve</h2>
+    <p class="sub">Owner-managed businesses up to roughly forty people — if that is you, you are in the right place. Larger, or audit and attest work, and we will connect you with the right partner rather than guess.</p>
+    <div class="who-grid">
+      <div class="who-item">New Florida LLCs in their first year — annual report, BOI and sales-tax registration done right from day one</div>
+      <div class="who-item">Freelancers, 1099 contractors and sole proprietors</div>
+      <div class="who-item">Restaurants, trades and service businesses with staff</div>
+      <div class="who-item">S-corps and partnerships that need K-1s out on time</div>
+      <div class="who-item">Landlords and investors with rental or crypto income</div>
+      <div class="who-item">Spanish-speaking owners — todo su expediente en español si lo prefiere</div>
+    </div>
+  </div>
+</section>
+
+<section class="assistant" id="assistant">
+  <div class="wrap assist-cols">
+    <div>
+      <span class="badge">Answers now — 24/7 · EN/ES</span>
+      <h2>Ask us anything, any hour.</h2>
+      <p class="sub">Type or talk. Our assistant answers the questions you would normally wait days for: what we handle, which documents you need, what your deadlines are — in English or Spanish. If your question needs a partner's judgment, it says so and gets you booked instead of guessing.</p>
+      <ul class="assist-points">
+        <li>Real answers about services, deadlines and documents</li>
+        <li>Becoming a client? It takes your details and our team gets a complete intake brief</li>
+        <li>It will never guess about your specific numbers — those go to a human, always</li>
+      </ul>
+    </div>
+    <div class="convai-host">
+      <elevenlabs-convai agent-id="agent_8401kyjnaj6dfertra9cdvxjnt5m"></elevenlabs-convai>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <h2>Talk to us</h2>
+    <p class="sub">Fastest is the assistant above or a booked call. Prefer email? Write to the intake inbox and you will get a reply within minutes with exactly what we need from you.</p>
+    <div class="contact-grid">
+      <div class="card">
+        <p class="lbl">Intake inbox</p>
+        <p><a href="mailto:andrewtry002@gmail.com?subject=New%20client%20enquiry">andrewtry002@gmail.com</a></p>
+        <p style="font-size:14px;color:var(--ink-2);margin-top:6px">Replies within minutes, day or night. Tell us your entity type and what you need — tax, books, payroll or all three.</p>
+      </div>
+      <div class="card">
+        <p class="lbl">Book a call</p>
+        <p><a href="https://cal.com/andrew-try-wnvwlh/grow-with-ai" data-cal-namespace="growwithai" data-cal-link="andrew-try-wnvwlh/grow-with-ai" data-cal-config='{"layout":"month_view","theme":"light"}'>Free 20-minute consultation</a></p>
+        <p style="font-size:14px;color:var(--ink-2);margin-top:6px">Pick a slot that suits you — evenings included.</p>
+      </div>
+      <div class="card">
+        <p class="lbl">Office</p>
+        <p>230 NE 4th Street<br>Miami, FL 33132</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 aiProcess Accounting Partners · Miami, FL</span>
+    <span>A demonstration practice operated by <a href="https://cpa.ai-process.net/">aiProcess</a></span>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+<script type="text/javascript">
+(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+Cal("init", "growwithai", {origin:"https://app.cal.com"});
+Cal.ns.growwithai("ui", {"hideEventTypeDetails":false,"layout":"month_view","theme":"light"});
+</script>
+</body>
+</html>
