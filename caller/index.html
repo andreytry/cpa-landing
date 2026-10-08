@@ -50,183 +50,140 @@ details.ct{background:#161b22;border:1px solid #30363d;border-radius:10px;margin
 .tb a{flex:1;text-align:center;padding:12px 4px;font-size:15px;color:#8b949e;text-decoration:none;border-bottom:3px solid transparent;-webkit-tap-highlight-color:transparent}
 .tb a.on{color:#e6edf3;border-bottom-color:var(--ac,#2f81f7);font-weight:600}
 .sig{background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px;margin:8px 0;font-size:15px;line-height:1.5}
+
+.tb{display:flex;border-bottom:1px solid #30363d;margin:12px 0 0;position:sticky;top:0;background:#0d1117;z-index:5}
+.tb a{flex:1;text-align:center;padding:12px 4px;font-size:16px;color:#8b949e;text-decoration:none;border-bottom:3px solid transparent}
+.tb a.on{color:#e6edf3;border-bottom-color:#2f81f7;font-weight:600}
+.fi{display:block;width:100%;font-size:16px;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;box-sizing:border-box}
+.wide{display:block;width:100%;padding:12px;margin-top:8px;font-size:16px}
+.msg{margin-top:10px;color:#f85149;font-size:14px}.lk{color:#58a6ff}
+.btns{display:flex;gap:10px;margin-top:10px}.big{flex:1;padding:14px;font-size:18px}.cb[disabled]{opacity:.35}
+.stl{font-size:17px;font-weight:600}.stl.ok{color:#3fb950}.stl.wn{color:#d29922}.stl.bad{color:#f85149}
+.vh{background:#1c2128;border:1px solid #2f81f7;border-radius:8px;padding:8px 10px;margin:12px 0 4px;font-size:14px}
+.sh{margin:16px 0 4px;font-size:15px;color:#8b949e;text-transform:uppercase;letter-spacing:.04em}
+.say{background:#161b22;border-left:3px solid #2f81f7;padding:10px 12px;margin:6px 0;border-radius:4px;font-size:17px;line-height:1.5}
+.tag{font-size:13px;color:#8b949e;margin-top:8px}.big1{font-size:20px;font-weight:700}.row1{font-size:15px;margin-top:4px}
+.ll .it{padding:8px 0;border-bottom:1px solid #21262d;font-size:15px}
 </style></head><body>
-<header style="padding:14px 16px 0"><h1 style="margin:0;font-size:20px">Caller</h1><div class="sub">Bot gets through phone menus. Live people are put through to your phone.</div></header>
-<main style="padding:12px 16px"><div id="cstatus"></div><div id="tabbar" style="display:none"></div><div id="ctabs"></div><div id="cbox"><div class="empty">Loading...</div></div></main>
+<main style="padding:12px 16px;max-width:720px;margin:0 auto"><div id="auth"></div>
+<div id="app" style="display:none"><div id="bar"></div><div id="tabs"></div><div id="pane"></div><div id="list"></div></div></main>
 <script>
 var API="https://zkylrolpuwybsksspblj.supabase.co/rest/v1/rpc/";
 var K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpreWxyb2xwdXd5YnNrc3NwYmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MTgwOTIsImV4cCI6MjA5NDQ5NDA5Mn0.xXfcM2u1FrZZujo-1KNnLGkPSkaoRGkjgk7KreB1TPM";
 function $(i){return document.getElementById(i)}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function pill(s,c){return '<span class="pill '+(c||String(s).replace(/ /g,"-"))+'">'+esc(s)+'</span>'}
-function kp(a){return a.map(function(k){return '<div class="kpi"><div class="v">'+k[1]+'</div><div class="l">'+k[0]+'</div></div>'}).join("")}
-var CPIN="",CT=null,CS_=null;
-try{CPIN=localStorage.getItem("lgcs")||""}catch(e){}
+function tc(s){return String(s||"").toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase()})}
+function first(n){return String(n||"").split(" ")[0]||"there"}
+function fmtPhone(p){var d=String(p||"").replace(/\D/g,"").slice(-10);return d.length===10?"("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6):p||""}
 function dpost(f,b){return fetch(API+f,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(b)}).then(function(r){if(!r.ok)throw new Error(f+" "+r.status);return r.json()})}
-function dc(a,args){return dpost("lg_dialer_control",{p_pin:CPIN,p_action:a,p_args:args||{}}).then(function(r){if(r&&r.error){alert(r.error)}else if(r&&r.loaded!=null){alert("Loaded "+r.loaded+" new numbers")}return loadCaller(true)})}
-function setPin(){var v=$("cpin").value.replace(/\D/g,"");if(!v)return;CPIN=v;try{localStorage.setItem("lgpin",CPIN)}catch(e){}if($("cpmsg"))$("cpmsg").textContent="Checking...";loadCaller(false)}
-function cSave(){dc("settings",{mode:$("cmode").value,list_source:$("clist").value,agent_phone:$("cagent").value.trim(),fallback_phone:$("cfb").value.trim(),predial_after_sec:+$("cpre").value||60,daily_cap:+$("ccap").value||100})}
-var CST={dialing:["Dialing / in menu","wn"],transferred:["Connected to you","ok"],ended:["Ended","bad"],error:["Error","bad"]};
-var CRES={connected_to_agent:"Talked to a person",voicemail:"Voicemail",no_human:"No person reached",no_answer:"No answer",timeout:"Timed out"};
-function loadCaller(quiet){
- if(!CT){CT=setInterval(function(){if(CPIN&&!document.hidden)loadCaller(true)},5000)}
- if(!CPIN){showLogin("");return Promise.resolve()}
- return dpost("lg_dialer_state",{p_pin:CPIN}).then(function(d){
-  if(d.error){CPIN="";try{localStorage.removeItem("lgcs")}catch(e){};showLogin("Please sign in again.");return}
-  var c=d.config,t=d.today||{},n=d.counts||{};CACT=c.active;
-  var h='<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><span class="pill '+(c.active?'ok':'bad')+'" style="font-size:14px;padding:4px 12px">'+(c.active?'RUNNING':'STOPPED')+'</span> <span class="sub">Miami time '+esc(d.et)+' | window '+esc(c.window_et)+' Mon-Fri</span></div><div>'
-   +(c.active?'<button class="cb" onclick="dc(\'stop\')">Stop</button> ':'<button class="cb go" onclick="dc(\'start\')">Start calling</button> ')
-   +'<button class="cb" onclick="if(confirm(\'Stop and hang up all bot lines?\'))dc(\'hangup_all\')">Hang up all</button></div></div>'
-   +'<div class="sub" style="margin-top:8px">Signed in as <b>'+esc(d.me)+'</b> | <a href="#" onclick="logout();return false" style="color:var(--ac)">Sign out</a>'+(d.last_actor?' | last change: '+esc(d.last_actor):'')+'</div><div class="sub" style="margin-top:4px">Live people are transferred to <b>'+esc(c.agent_phone||'-')+'</b>'+(c.mode==='overlap'?' | next dial starts '+c.predial_after_sec+'s into your call'+(c.fallback_phone?', overflow to '+esc(c.fallback_phone):''):' | one call at a time')+'</div></div>';
-  $("cstatus").innerHTML=h;h='';renderTabs();
-  h+='<div class="kpis">'+kp([["Dialed today",t.dialed||0],["Talked to a person",'<span style="color:var(--ok)">'+(t.connected||0)+'</span>'],["Voicemail",t.voicemail||0],["No person",t.no_human||0],["Bot minutes",t.minutes||0],["Left in list",(d.counts||{}).ready||0]])+'</div>';
-  h+='<h2>Lines</h2><div class="ll" style="max-height:none">';
-  (d.lines||[]).forEach(function(l,i){var s=CST[l.state]||[l.state,''];var lab=l.state==='ended'?(CRES[l.result]||l.result||'Ended'):s[0];var cls=l.state==='ended'?(l.result==='connected_to_agent'?'ok':''):s[1];
-   h+='<div class="it"><div class="f"><span>'+esc(l.contact||l.name)+'</span><small>'+new Date(l.started_at).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})+'</small></div><div class="s">'+pill(lab,cls)+' '+esc(l.name)+(l.min?' | '+l.min+' min':'')+'</div><div class="p">'+esc(l.place||'')+' | <a href="tel:'+esc(l.phone)+'" style="color:var(--ac)">'+esc(l.phone)+'</a>'+(l.recording_url?' | <a target="_blank" href="'+esc(l.recording_url)+'" style="color:var(--ac)">recording</a>':'')+'</div>'
-    +(l.transcript?'<details><summary class="sub" style="cursor:pointer">transcript</summary><pre style="white-space:pre-wrap;font:12px/1.4 inherit">'+esc(l.transcript)+'</pre></details>':'')+'</div>'});
-  if(!(d.lines||[]).length)h+='<div class="empty">No calls yet</div>';
-  h+='</div><h2>Next in list ('+(n.ready||0)+' left)</h2><div class="ll" style="max-height:none">';
-  (d.queue||[]).forEach(function(q){h+='<div class="it"><div class="f"><span>'+esc(q.contact||q.name)+'</span><small><button class="cb sm" onclick="dc(\'skip\',{id:'+q.id+'})">Skip</button></small></div><div class="p">'+esc(q.name)+' | '+esc(q.place||'')+' | '+esc(q.phone)+'</div></div>'});
-  if(!(d.queue||[]).length)h+='<div class="empty">List is empty. Load it below.</div>';
-  h+='</div><h2>Settings</h2><div class="card"><div class="cg">'
-   +'<label>List<select id="clist"><option value="khi_owners"'+(c.list_source==='khi_owners'?' selected':'')+'>KHI owners (priority list)</option><option value="offices"'+(c.list_source==='offices'?' selected':'')+'>Leasing offices</option></select></label>'
-   +'<label>Mode<select id="cmode"><option value="one_by_one"'+(c.mode==='one_by_one'?' selected':'')+'>One by one</option><option value="overlap"'+(c.mode==='overlap'?' selected':'')+'>Overlap (dial next while you talk)</option></select></label>'
-   +'<label>Your phone (gets the live people)<input id="cagent" value="'+esc(c.agent_phone||'')+'" placeholder="+13055551234"></label>'
-   +'<label>Overflow phone (optional)<input id="cfb" value="'+esc(c.fallback_phone||'')+'" placeholder="+1..."></label>'
-   +'<label>Overlap: start next dial after (sec)<input id="cpre" type="number" value="'+c.predial_after_sec+'"></label>'
-   +'<label>Daily cap<input id="ccap" type="number" value="'+c.daily_cap+'"></label>'
-   +'</div><div style="margin-top:10px"><button class="cb go" onclick="cSave()">Save settings</button> <button class="cb" onclick="dc(\'load\',{source:$(\'clist\').value})">Load / refresh list from CRM</button></div></div>';
-  var si=h.indexOf('<h2>Settings</h2>');var lp=h.slice(0,si),sp=h.slice(si);
-  $("cbox").setAttribute("data-list",lp);var ae=document.activeElement;var inSet=ae&&$("ctabs").contains(ae)&&CTAB==="set";
-  if(CTAB==="list")$("ctabs").innerHTML=lp;
-  if(CTAB==="set"&&!inSet)$("ctabs").innerHTML=sp;
-  LASTSET=sp;$("cbox").innerHTML="";
- }).catch(function(e){if(!quiet)$("cbox").innerHTML='<div class="err">Caller load failed: '+esc(e.message)+' <button class="cb" onclick="loadCaller()">Retry</button></div>'});
-}
+var TOK="";try{TOK=localStorage.getItem("lgcs")||""}catch(e){}
+var ST=null,CUR=null,TAB="script",BUSY=false,TIMER=null,DRAWN="";
+var RES={connected_to_agent:"Talked to a person",voicemail:"Voicemail",no_human:"No person reached",no_answer:"No answer",timeout:"Timed out"};
+var MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function setPin(){}
-function inp(id,type,ph,ac){return '<input id="'+id+'" type="'+type+'" placeholder="'+ph+'" autocomplete="'+ac+'" onkeydown="if(event.key===\'Enter\')'+(id==='lp'?'doLogin()':id==='sp2'?'doSetup()':(id==='sp'||id==='sc')?'finishSignup()':id==='se'?'sendCode()':id==='sp1'?'$(&quot;sp2&quot;).focus()':id==='le'?'$(&quot;lp&quot;).focus()':'void 0')+'" style="display:block;width:100%;max-width:320px;font-size:17px;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3">'}
-function showLogin(msg){$("cstatus").innerHTML="";$("tabbar").style.display="none";$("ctabs").innerHTML="";$("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Sign in</h3>'+inp("le","email","Email","username")+inp("lp","password","Password","current-password")+'<button class="cb go" onclick="doLogin()" style="width:100%;max-width:320px;padding:10px">Sign in</button><div id="lmsg" class="sub" style="margin-top:8px;color:#f85149">'+esc(msg)+'</div><div style="margin-top:10px"><button class="cb" onclick="showSignup()" style="width:100%;max-width:320px;padding:10px">Sign up</button></div><div style="margin-top:12px"><a href="#" onclick="showSignup(1);return false" style="color:var(--ac);font-size:15px">Forgot password?</a></div></div>'}
-function showSignup(reset){var e=($("le")&&$("le").value)||"";$("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Sign up</h3><div class="sub">Enter your email. You get a 6-digit code.</div>'+inp("se","email","Email","username")+'<button class="cb go" onclick="sendCode()" style="width:100%;max-width:320px;padding:10px">Send code</button><div id="scode" style="display:none">'+inp("sc","text","6-digit code","one-time-code")+inp("sp","password","New password (8+ characters)","new-password")+'<button class="cb go" onclick="finishSignup()" style="width:100%;max-width:320px;padding:10px">Save and sign in</button></div><div id="lmsg" class="sub" style="margin-top:8px"></div><div style="margin-top:10px"><button class="cb" onclick="showLogin(\'\')" style="width:100%;max-width:320px;padding:10px">Sign in</button></div></div>';$("se").value=e}
+/* ---------- auth ---------- */
+function inp(id,type,ph,ac,enter){return '<input id="'+id+'" type="'+type+'" placeholder="'+ph+'" autocomplete="'+ac+'"'+(enter?' onkeydown="if(event.key===\'Enter\')'+enter+'"':'')+' class="fi">'}
+function authBox(h){$("app").style.display="none";$("auth").style.display="block";$("auth").innerHTML='<div class="card" style="max-width:380px;margin:30px auto">'+h+'</div>'}
+function showLogin(msg){authBox('<h3>Sign in</h3>'+inp("le","email","Email","username","$(\'lp\').focus()")+inp("lp","password","Password","current-password","doLogin()")+'<button class="cb go wide" onclick="doLogin()">Sign in</button><button class="cb wide" onclick="showSignup()">Sign up</button><div style="margin-top:12px"><a href="#" onclick="showSignup(1);return false" class="lk">Forgot password?</a></div><div id="lmsg" class="msg">'+esc(msg||"")+'</div>')}
+function doLogin(){var e=$("le").value.trim(),p=$("lp").value;if(!e||!p)return;$("lmsg").textContent="Checking...";dpost("lg_caller_login",{p_email:e,p_password:p}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}setTok(r.token)}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
+function showSignup(reset){authBox('<h3>'+(reset?'Reset password':'Sign up')+'</h3><div class="sub">Enter your email. You get a 6-digit code.</div>'+inp("se","email","Email","username","sendCode()")+'<button class="cb go wide" onclick="sendCode()">Send code</button><div id="scode" style="display:none">'+inp("sc","text","6-digit code","one-time-code","$(\'sp\').focus()")+inp("sp","password","New password (8+ characters)","new-password","finishSignup()")+'<button class="cb go wide" onclick="finishSignup()">Save and sign in</button></div><button class="cb wide" onclick="showLogin()">Sign in</button><div id="lmsg" class="msg"></div>')}
 function sendCode(){var e=$("se").value.trim();if(!e)return;$("lmsg").textContent="Sending...";dpost("lg_caller_code_start",{p_email:e}).then(function(r){$("lmsg").textContent=r.msg||r.error||"";$("scode").style.display="block";$("sc").focus()}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
 function finishSignup(){var e=$("se").value.trim(),c=$("sc").value.trim(),pw=$("sp").value;if(pw.length<8){$("lmsg").textContent="Use at least 8 characters";return}$("lmsg").textContent="Checking...";
- dpost("lg_caller_code_finish",{p_email:e,p_code:c,p_password:pw}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}CPIN=r.token;try{localStorage.setItem("lgcs",CPIN)}catch(x){}loadCaller(false)}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
-function doLogin(){var e=$("le").value.trim(),p=$("lp").value;if(!e||!p)return;$("lmsg").textContent="Checking...";dpost("lg_caller_login",{p_email:e,p_password:p}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}CPIN=r.token;try{localStorage.setItem("lgcs",CPIN)}catch(x){}loadCaller(false)}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
-function logout(){var t=CPIN;CPIN="";try{localStorage.removeItem("lgcs")}catch(x){}dpost("lg_caller_logout",{p_tok:t}).catch(function(){});showLogin("")}
-var SETUP="";
-function showSetup(){$("cstatus").innerHTML="";$("tabbar").style.display="none";$("ctabs").innerHTML="";dpost("lg_caller_setup_info",{p_setup:SETUP}).then(function(r){if(r.error){showLogin(r.error);return}
- $("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Welcome '+esc(r.name||"")+'</h3><div class="sub">Create your password for '+esc(r.email)+'</div><input type="email" autocomplete="username" value="'+esc(r.email)+'" style="display:none">'+inp("sp1","password","New password (8+ characters)","new-password")+inp("sp2","password","Repeat password","new-password")+'<button class="cb go" onclick="doSetup()" style="width:100%;max-width:320px;padding:10px">Save and sign in</button><div id="lmsg" class="sub" style="margin-top:8px;color:#f85149"></div></div>'})
- .catch(function(x){showLogin("Network error: "+x.message)})}
-function doSetup(){var a=$("sp1").value,b=$("sp2").value;if(a.length<8){$("lmsg").textContent="Use at least 8 characters";return}if(a!==b){$("lmsg").textContent="Passwords do not match";return}
- dpost("lg_caller_set_password",{p_setup:SETUP,p_password:a}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}CPIN=r.token;try{localStorage.setItem("lgcs",CPIN)}catch(x){}history.replaceState(null,"",location.pathname);loadCaller(false)})}
-var m=location.hash.match(/setup=([a-f0-9]+)/);
-if(m){SETUP=m[1];showSetup()}else{loadCaller(false)}
+ dpost("lg_caller_code_finish",{p_email:e,p_code:c,p_password:pw}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}setTok(r.token)}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
+function setTok(t){TOK=t;try{localStorage.setItem("lgcs",t)}catch(x){}start()}
+function logout(){var t=TOK;TOK="";try{localStorage.removeItem("lgcs")}catch(x){}dpost("lg_caller_logout",{p_tok:t}).catch(function(){});if(TIMER){clearInterval(TIMER);TIMER=null}showLogin()}
 
-var CACT=false,CTAB="call",CUR=null,CURKEY="";
-function fmtPhone(p){var d=String(p||"").replace(/\D/g,"").slice(-10);return d.length===10?"("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6):p||""}
-function first(n){return String(n||"").split(" ")[0]||"there"}
-function tc(s){return String(s||"").toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase()})}
-function q(s){return '<div style="background:#161b22;border-left:3px solid var(--ac);padding:8px 10px;margin:6px 0;border-radius:4px;font-size:15px;line-height:1.45">'+s+'</div>'}
-function sh(t){return '<h3 style="margin:14px 0 4px;font-size:15px">'+t+'</h3>'}
-var MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-function vertHead(c){var list=c.source==='offices'?'Leasing offices':'KHI owners';
- return '<div class="sig" style="border-color:var(--ac)"><b>Vertical:</b> Property management<br><b>Client:</b> KHI Real Estate<br><b>List:</b> '+list+'</div>'}
-function signals(c){var s=c.sig||{},w=c.why||"",out=[],addr=tc(c.address)||"the building";
- if(s.recent_buy||/recent purchase/.test(w)){var when=s.sale_yr?(MON[s.sale_mo||0]||"")+" "+s.sale_yr:"recently";
-  out.push({t:'Recent purchase ('+when.trim()+')',say:'Congratulations on buying '+esc(addr)+(s.sale_yr?' in '+esc(when.trim()):'')+'. Have you set up management for it yet?'})}
- if(/no manager/.test(w))out.push({t:'No management company listed',say:'I noticed '+esc(addr)+' does not list a management company. Are you managing it yourself?'});
- if(s.oos||/out-of-state/.test(w)){var fr=s.own_city?tc(s.own_city)+(s.own_state?', '+s.own_state:''):'out of state';
-  out.push({t:'Owner lives out of state ('+esc(fr)+')',say:'I see you are based in '+esc(fr)+'. Running a building in Florida from there can take a lot of time. How do you handle it today?'})}
- var m=(w.match(/mgr: ([^,]+)/)||[])[1];if(m)out.push({t:'Current manager: '+esc(m),say:'I see '+esc(m)+' manages it today. Are you happy with them?'});
- if(s.recert_open)out.push({t:'Building recertification open',say:'I also saw the building has an open recertification. Who is handling that for you?'});
- if(s.yr_built&&s.yr_built<1990)out.push({t:'Older building (built '+s.yr_built+')',say:''});
+/* ---------- data ---------- */
+function start(){$("auth").style.display="none";$("app").style.display="block";refresh(true);if(!TIMER)TIMER=setInterval(function(){if(!document.hidden)refresh()},5000)}
+function refresh(force){if(!TOK){showLogin();return}
+ Promise.all([dpost("lg_dialer_state",{p_pin:TOK}),dpost("lg_dialer_current",{p_pin:TOK})]).then(function(a){
+  if(a[0].error||a[1].error){TOK="";try{localStorage.removeItem("lgcs")}catch(x){}showLogin("Please sign in again.");return}
+  ST=a[0];CUR=a[1].none?null:a[1];draw(force)}).catch(function(e){$("bar").innerHTML='<div class="err">Connection problem: '+esc(e.message)+'</div>'})}
+
+/* ---------- actions ---------- */
+function act(a,args){if(BUSY)return;BUSY=true;drawBar();
+ var notes=$("cnotes")?$("cnotes").value:"";var p=Promise.resolve();
+ if(CUR&&CUR.call_id&&notes.trim())p=dpost("lg_dialer_note",{p_pin:TOK,p_call_id:CUR.call_id,p_note:{notes:notes}}).catch(function(){});
+ p.then(function(){return dpost("lg_dialer_control",{p_pin:TOK,p_action:a,p_args:args||{}})}).then(function(r){BUSY=false;if(r&&r.error)alert(r.error);DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert("Failed: "+e.message);refresh(true)})}
+function doCall(){if(!ST)return;if(!ST.config.active)act("start");else act("next",CUR&&CUR.call_id?{call_id:CUR.call_id}:{})}
+function doPostpone(){if(!CUR)return;act("postpone",CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id})}
+function doStop(){act("stop")}
+
+/* ---------- render ---------- */
+function stateInfo(){var c=ST.config;if(!CUR)return {t:c.active?"Dialing...":"List is empty",cls:"wn",canCall:!c.active,canPost:false};
+ if(CUR.state==="dialing")return {t:"Bot is dialing "+esc(CUR.contact||CUR.company),cls:"wn",canCall:false,canPost:false};
+ if(CUR.state==="transferred")return {t:"On the line with you",cls:"ok",canCall:false,canPost:false};
+ if(CUR.state==="ended")return {t:"Call ended: "+(RES[CUR.result]||CUR.result||""),cls:CUR.result==="connected_to_agent"?"ok":"bad",canCall:true,canPost:true};
+ return {t:c.active?"Dialing...":"Next: "+esc(CUR.contact||CUR.company),cls:"",canCall:!c.active,canPost:!c.active}}
+function drawBar(){if(!ST)return;var s=stateInfo(),c=ST.config;
+ $("bar").innerHTML='<div class="card"><div class="stl '+s.cls+'">'+s.t+'</div>'
+  +'<div class="btns"><button class="cb go big" '+((s.canCall&&!BUSY)?'':'disabled')+' onclick="doCall()">'+(BUSY?'...':'Call')+'</button>'
+  +'<button class="cb big" '+((s.canPost&&!BUSY)?'':'disabled')+' onclick="doPostpone()">Postpone</button></div>'
+  +'<div class="sub" style="margin-top:8px">'+(c.active?'Running | <a href="#" class="lk" onclick="doStop();return false">Stop</a> | ':'Stopped | ')+'Miami '+esc(ST.et)+' | calls go to '+esc(c.agent_phone||'-')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>'}
+function drawTabs(){$("tabs").innerHTML='<div class="tb"><a href="#" class="'+(TAB==="script"?"on":"")+'" onclick="TAB=\'script\';DRAWN=\'\';draw(true);return false">Script</a><a href="#" class="'+(TAB==="prospect"?"on":"")+'" onclick="TAB=\'prospect\';DRAWN=\'\';draw(true);return false">Prospect</a></div>'}
+function L(s){return '<div class="say">'+s+'</div>'}
+function H(t){return '<h3 class="sh">'+t+'</h3>'}
+function signals(c){var s=c.sig||{},w=c.why||"",out=[],addr=esc(tc(c.address)||"the building");
+ if(s.recent_buy||/recent purchase/.test(w)){var when=s.sale_yr?((MON[s.sale_mo||0]||"")+" "+s.sale_yr).trim():"";
+  out.push({t:"Recent purchase"+(when?" ("+when+")":""),say:"Congratulations on buying "+addr+(when?" in "+when:"")+". Have you set up management for it yet?"})}
+ if(/no manager/.test(w))out.push({t:"No management company listed",say:"I noticed "+addr+" does not list a management company. Are you managing it yourself?"});
+ if(s.oos||/out-of-state/.test(w)){var fr=s.own_city?tc(s.own_city)+(s.own_state?", "+s.own_state:""):"out of state";
+  out.push({t:"Owner lives out of state ("+esc(fr)+")",say:"I see you are based in "+esc(fr)+". Running a building in Florida from there can take a lot of time. How do you handle it today?"})}
+ var m=(w.match(/mgr: ([^,]+)/)||[])[1];if(m)out.push({t:"Current manager: "+esc(m),say:"I see "+esc(m)+" manages it today. Are you happy with them?"});
+ if(s.recert_open)out.push({t:"Recertification open",say:"I also saw the building has an open recertification. Who is handling that for you?"});
  return out}
-function scriptOwner(c){
- var nm=c.contact||"the owner",fn=first(c.contact),addr=tc(c.address)||c.place||"your building",city=tc(c.city);
- var why=c.why||"",noMgr=/no manager/.test(why),mgr=(why.match(/mgr: ([^,]+)/)||[])[1];
- var h=sh('1. Opening')+q('Hi, is this <b>'+esc(nm)+'</b>? This is Alex from aiProcess in Miami. I\'m calling about your apartment building at <b>'+esc(addr)+(city?', '+esc(city):'')+'</b>. Do you have one minute?')
- +'<div class="sub">Not the owner on the phone: '+q('Who is the best person to talk to about the property at '+esc(addr)+'? What is their number?')+'</div>';
- var sg=signals(c);
- if(sg.length){h+=sh('2. Why we call (use the first that fits)');sg.forEach(function(g,i){h+='<div class="sub" style="margin-top:6px"><b>Signal '+(i+1)+':</b> '+g.t+'</div>'+(g.say?q(g.say):'')})}
- h+=sh((sg.length?'3':'2')+'. Who manages it')+(noMgr?'<div class="sub">We have no manager on record for this building.</div>':'')+(mgr?'<div class="sub">On record: '+esc(mgr)+'</div>':'')+q('Who manages the property today?');
- h+=sh('Are they happy')+'<div class="sub">They manage it themselves:</div>'+q('How is that working for you, '+esc(fn)+'? Is it taking a lot of your time?')
- +'<div class="sub">They have a manager:</div>'+q('Are you happy with them?');
- h+=sh('Offer')+q('We work with a pool of qualified, vetted property managers in Florida. We connect them with owners, and there is no cost to you. Would you be open to a short call with one of them this week?');
- h+=sh('If yes')+q('Great. What day and time works best for you? And what is the best email for the invite?')+'<div class="sub">Repeat the day, time and email back to confirm.'+(c.email?' Email on file: <b>'+esc(c.email)+'</b>':'')+'</div>';
- h+=sh('If no')+q('No problem. Is it okay if I check back with you in a few months?');
- h+=sh('Fallbacks')
- +'<div class="sub">"Who are you?"</div>'+q('aiProcess. We connect building owners with vetted property managers.')
- +'<div class="sub">"What does it cost?"</div>'+q('Nothing for you.')
- +'<div class="sub">"Who is the manager?"</div>'+q('A property management company that works with buildings like yours. I\'ll send the details by email before the call.')
- +'<div class="sub">"I\'m not the right person."</div>'+q('Who is the best person to talk to about the property? What is their number?')
- +'<div class="sub">"How did you get my number?"</div>'+q('From public property records for '+esc(addr)+'.')
- +'<div class="sub">"Send me an email."</div>'+q('Sure. What is the best email?'+(c.email?' Is it still '+esc(c.email)+'?':''))
- +'<div class="sub">"Don\'t call me again."</div>'+q('Sorry to bother you. I\'ll remove you from our list.')+'<div class="sub">Mark Interested = Do not call below.</div>'
- +sh('Voicemail')+q('Hi '+esc(fn)+', this is Alex from aiProcess in Miami, calling about your apartment building at '+esc(addr)+'. Please call me back at [your Miami number]. Thank you.');
+function scriptOwner(c){var nm=esc(c.contact||"the owner"),fn=esc(first(c.contact)),addr=esc(tc(c.address)||c.place||"your building"),city=esc(tc(c.city)),sg=signals(c);
+ var h='<div class="vh">Property management | KHI owners | '+nm+', '+addr+(c.units?' ('+c.units+' units)':'')+'</div>';
+ h+=H("Opening")+L('Hi, is this <b>'+nm+'</b>? This is Alex from aiProcess in Miami. I\'m calling about your apartment building at <b>'+addr+(city?', '+city:'')+'</b>. Do you have one minute?');
+ if(sg.length){h+=H("Why I'm calling");sg.forEach(function(g,i){h+='<div class="tag">'+(i===0?'Main reason':'Or')+': '+g.t+'</div>'+L(g.say)})}
+ h+=H("Who manages it")+L("Who manages the property today?");
+ h+=H("Are they happy")+'<div class="tag">Self-managed</div>'+L("How is that working for you, "+fn+"? Is it taking a lot of your time?")+'<div class="tag">Has a manager</div>'+L("Are you happy with them?");
+ h+=H("Offer")+L("We work with a pool of qualified, vetted property managers in Florida. We connect them with owners, and there is no cost to you. Would you be open to a short call with one of them this week?");
+ h+=H("If yes")+L("Great. What day and time works best for you? And what is the best email for the invite?"+(c.email?" Is it still "+esc(c.email)+"?":""))+'<div class="tag">Repeat day, time and email back.</div>';
+ h+=H("If no")+L("No problem. Is it okay if I check back with you in a few months?");
+ h+=H("If they say")+'<div class="tag">Who are you?</div>'+L("aiProcess. We connect building owners with vetted property managers.")
+  +'<div class="tag">What does it cost?</div>'+L("Nothing for you.")
+  +'<div class="tag">Who is the manager?</div>'+L("A property management company that works with buildings like yours. I\'ll send the details by email before the call.")
+  +'<div class="tag">How did you get my number?</div>'+L("From public property records for "+addr+".")
+  +'<div class="tag">Send me an email</div>'+L("Sure. What is the best email?"+(c.email?" Is it "+esc(c.email)+"?":""))
+  +'<div class="tag">I\'m not the right person</div>'+L("Who is the best person to talk to about "+addr+"? What is their number?")
+  +'<div class="tag">Don\'t call me again</div>'+L("Sorry to bother you. I\'ll remove you from our list.");
+ h+=H("Voicemail")+L("Hi "+fn+", this is Alex from aiProcess in Miami, calling about your apartment building at "+addr+". Please call me back at [your Miami number]. Thank you.");
  return h}
-function scriptOffice(c){
- var prop=c.company||"the property";
- return sh('1. Opening')+q('Hi, this is Alex from aiProcess in Miami. I\'m calling for the ownership or management side of <b>'+esc(prop)+'</b>. Who would be the right person for that?')
- +sh('2. Get the decision maker')+q('Is the property managed in-house or by a management company?')+q('What is the best name, phone or email to reach them?')
- +sh('3. If you reach the owner or manager')+'<div class="sub">Switch to the owner script: who manages it, are they happy, offer a short call with a vetted manager.</div>'
- +sh('Fallbacks')+'<div class="sub">"What is this about?"</div>'+q('We connect building owners with vetted property managers in Florida. There is no cost to the owner.')
- +'<div class="sub">"We don\'t give out that information."</div>'+q('Understood. Could you pass my number to them? It\'s [your Miami number].')
- +'<div class="sub">"Don\'t call again."</div>'+q('Sorry to bother you. I\'ll remove you from our list.')}
-function notesForm(c){var n=c.notes||{};function f(id,l,v,ph){return '<label style="display:block;margin:6px 0"><span class="sub">'+l+'</span><input id="n_'+id+'" value="'+esc(v||"")+'" placeholder="'+(ph||"")+'" style="display:block;width:100%;font-size:15px;padding:8px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3"></label>'}
- function s(id,l,v,opts){return '<label style="display:block;margin:6px 0"><span class="sub">'+l+'</span><select id="n_'+id+'" style="display:block;width:100%;font-size:15px;padding:8px">'+opts.map(function(o){return '<option'+(o===v?' selected':'')+'>'+o+'</option>'}).join("")+'</select></label>'}
- return sh('After the call, write down')+'<div class="card">'+f('who','Who answered',n.who,c.contact)+f('manager','Who manages the property',n.manager)+s('happy','Happy with it?',n.happy,['','Yes','No','Self-managed','Unknown'])
- +s('interested','Interested?',n.interested,['','Meeting booked','Interested','Call back later','Not interested','Do not call','Wrong person'])+f('meeting','Meeting day and time',n.meeting,'e.g. Tue 2pm ET')+f('email','Email',n.email||c.email)
- +'<label style="display:block;margin:6px 0"><span class="sub">Summary (edit if needed)</span><textarea id="n_notes" rows="4" style="display:block;width:100%;font-size:15px;padding:8px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3">'+esc(n.notes||(c.state==='ended'&&c.result!=='connected_to_agent'?'Bot: '+(CRES[c.result]||c.result||''):''))+'</textarea></label>'
- +'<button class="cb go" onclick="saveNote()">Save</button> <span id="nmsg" class="sub">'+(n.saved_at?'Saved':'')+'</span></div>'}
-function saveNote(){if(!CUR)return;var o={};["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){o[k]=$("n_"+k).value});$("nmsg").textContent="Saving...";
- dpost("lg_dialer_note",{p_pin:CPIN,p_call_id:CUR.call_id,p_note:o}).then(function(r){$("nmsg").textContent=r.error?r.error:"Saved"}).catch(function(e){$("nmsg").textContent="Not saved: "+e.message})}
-function represent(){return '<div class="card">'+sh('Client: KHI Real Estate')+'<div style="font-size:15px;line-height:1.5">Contact: Derek Knutson, CFA, CEO<br>KHI does property management for multifamily buildings.</div>'
- +sh('Who we look for')+'<div style="font-size:15px;line-height:1.5">Owners of apartment buildings with 50 to 300 units.<br>Markets: Miami, Fort Myers, Tampa, Jacksonville (Florida).<br>Owners who manage the building themselves or are unhappy with their manager.</div>'
- +sh('What we book')+'<div style="font-size:15px;line-height:1.5">A short intro call between the owner and the property manager. No cost to the owner.</div>'
- +sh('How to present it')+'<div style="font-size:15px;line-height:1.5">As in the script: "a vetted property manager". The details go to the owner by email before the meeting.</div></div>'}
-function tabBtn(k,l){return '<button class="cb'+(CTAB===k?' go':'')+'" onclick="CTAB=\''+k+'\';CURKEY=\'\';renderTabs()" style="flex:1">'+l+'</button>'}
-function renderTabs(){
- drawTabbar();var box=$("ctabs");if(CTAB!=="call")return;
- var a=document.activeElement;if(a&&a.id&&a.id.indexOf("n_")===0&&box.contains(a))return; // never redraw while typing
- dpost("lg_dialer_current",{p_pin:CPIN}).then(function(c){
-  if(c.error)return;CUR=c.none?null:c;
-  var key=CTAB+"|"+(c.call_id||"")+"|"+(c.state||"");if(key===CURKEY)return;
-  var a2=document.activeElement;if(a2&&a2.id&&a2.id.indexOf("n_")===0&&box.contains(a2))return;
-  CURKEY=key;
-  if(CTAB!=="call")return;
-  var h='';
-  if(!CUR){h+='<div class="card"><div class="empty">'+(CACT?'Dialing the next one...':'Press Start calling. The person on the line and their script show here.')+'</div></div>'}
-  else{var ended=CUR.state==='ended',st=CUR.state==='transferred'?pill('ON THE LINE WITH YOU','ok'):CUR.state==='dialing'?pill('Bot is dialing / in the phone menu','wn'):pill('Call ended: '+(CRES[CUR.result]||CUR.result||'ended'),CUR.result==='connected_to_agent'?'ok':'bad');
-   h+='<div class="card"><div>'+st+'</div><div style="font-size:19px;font-weight:700;margin-top:6px">'+esc(CUR.contact||CUR.company)+'</div>'
-    +'<div class="sub">'+esc(CUR.company||'')+'</div><div style="font-size:15px;margin-top:4px">'+esc(tc(CUR.address)||CUR.place||'')+(CUR.city?', '+esc(tc(CUR.city)):'')+(CUR.units?' | '+CUR.units+' units':'')+'</div>'
-    +'<div style="margin-top:4px"><a href="tel:'+esc(CUR.phone)+'" style="color:var(--ac)">'+esc(fmtPhone(CUR.phone))+'</a>'+(CUR.email?' | '+esc(CUR.email):'')+'</div>'
-    +(CUR.why?'<div class="sub" style="margin-top:4px">'+esc(CUR.why)+'</div>':'')+nextBar(ended)+'</div>';
-   var sc=vertHead(CUR)+(CUR.source==='offices'?scriptOffice(CUR):scriptOwner(CUR));
-   if(ended){h+=notesForm(CUR)+'<details style="margin-top:10px"><summary class="sub" style="cursor:pointer">Show script</summary>'+sc+'</details>'}
-   else{h+=sc+notesForm(CUR)}}
-  var keep={};if(box.getAttribute("data-call")===(CUR&&CUR.call_id)){["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){var e=$("n_"+k);if(e)keep[k]=e.value})}
-  box.innerHTML=h;box.setAttribute("data-call",CUR?CUR.call_id:"");for(var k in keep){var e=$("n_"+k);if(e)e.value=keep[k]}
- }).catch(function(){})}
-
-function nextBar(ended){
- if(!ended)return CUR.state==='transferred'?'<div class="sub" style="margin-top:8px">When you hang up, the summary shows here. Then press Next.</div>':'';
- return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="cb go" style="flex:2;padding:12px;font-size:17px" onclick="goNext()">Next</button>'
- +'<select id="ppw" style="flex:1;font-size:15px;padding:8px"><option value="2">in 2 hours</option><option value="24" selected>tomorrow</option><option value="168">next week</option></select>'
- +'<button class="cb" style="flex:1;padding:12px" onclick="goPostpone()">Postpone</button></div>'}
-function noteObj(){var o={};["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){var e=$("n_"+k);o[k]=e?e.value:""});return o}
-function advance(action,args){if(!CUR)return;var id=CUR.call_id;var o=noteObj();
- $("ctabs").innerHTML='<div class="card" style="margin-top:12px"><div class="empty">'+(action==='postpone'?'Postponed. ':'')+'Saving and dialing the next one...</div></div>';CURKEY="";
- dpost("lg_dialer_note",{p_pin:CPIN,p_call_id:id,p_note:o}).catch(function(){}).then(function(){return dpost("lg_dialer_control",{p_pin:CPIN,p_action:action,p_args:Object.assign({call_id:id},args||{})})})
- .then(function(r){if(r&&r.error)alert(r.error);CURKEY="";loadCaller(true)}).catch(function(e){alert("Failed: "+e.message);CURKEY="";renderTabs()})}
-function goNext(){advance("next")}
-function goPostpone(){advance("postpone",{hours:+$("ppw").value})}
-
-var LASTSET="";
-var TABS=[["call","Call"],["rep","Client"],["list","List"],["set","Settings"]];
-function drawTabbar(){var b=$("tabbar");b.style.display="block";b.innerHTML='<div class="tb">'+TABS.map(function(t){return '<a href="#" class="'+(CTAB===t[0]?'on':'')+'" onclick="setTab(\''+t[0]+'\');return false">'+t[1]+'</a>'}).join("")+'</div>'}
-function setTab(t){CTAB=t;CURKEY="";drawTabbar();var box=$("ctabs");box.setAttribute("data-call","");
- if(t==="call"){box.innerHTML='<div class="empty">Loading...</div>';renderTabs()}
- else if(t==="rep"){box.innerHTML=represent()}
- else if(t==="list"){box.innerHTML=$("cbox").getAttribute("data-list")||'<div class="empty">Loading...</div>';loadCaller(true)}
- else if(t==="set"){box.innerHTML=LASTSET||'<div class="empty">Loading...</div>'}}
+function scriptOffice(c){var prop=esc(c.company||"the property");
+ return '<div class="vh">Property management | Leasing offices | '+prop+'</div>'+H("Opening")+L("Hi, this is Alex from aiProcess in Miami. I\'m calling for the ownership or management side of <b>"+prop+"</b>. Who would be the right person for that?")
+ +H("Get the decision maker")+L("Is the property managed in-house or by a management company?")+L("What is the best name, phone or email to reach them?")
+ +H("If they say")+'<div class="tag">What is this about?</div>'+L("We connect building owners with vetted property managers in Florida. There is no cost to the owner.")
+ +'<div class="tag">We don\'t give out that information</div>'+L("Understood. Could you pass my number to them?")+'<div class="tag">Don\'t call again</div>'+L("Sorry to bother you. I\'ll remove you from our list.")}
+function prospect(c){var s=c.sig||{},sg=signals(c);
+ var h='<div class="card"><div class="big1">'+esc(c.contact||c.company)+'</div><div class="sub">'+esc(c.company||"")+'</div>'
+  +'<div class="row1">'+esc(tc(c.address)||c.place||"")+(c.city?", "+esc(tc(c.city)):"")+'</div>'
+  +(c.units?'<div class="row1">'+c.units+' units'+(s.yr_built?' | built '+s.yr_built:'')+'</div>':'')
+  +'<div class="row1"><a class="lk" href="tel:'+esc(c.phone)+'">'+esc(fmtPhone(c.phone))+'</a>'+(c.email?' | '+esc(c.email):'')+'</div>'
+  +(s.own_city?'<div class="row1">Owner based in '+esc(tc(s.own_city))+(s.own_state?', '+esc(s.own_state):'')+'</div>':'')
+  +(s.sale_yr?'<div class="row1">Bought '+((MON[s.sale_mo||0]||"")+" "+s.sale_yr).trim()+(s.sale_price?' for $'+Number(s.sale_price).toLocaleString():'')+'</div>':'')+'</div>';
+ h+=H("Signals")+(sg.length?sg.map(function(g,i){return '<div class="tag">Signal '+(i+1)+': '+g.t+'</div>'}).join(""):'<div class="sub">None on record</div>');
+ h+=H("Who we call for")+'<div class="card">Vertical: Property management<br>Client: KHI Real Estate (Derek Knutson, CEO)<br>Looking for: owners of 50 to 300 unit apartment buildings in Miami, Fort Myers, Tampa, Jacksonville<br>Goal: book a short intro call with the property manager, no cost to the owner</div>';
+ return h}
+function notesBox(c){var v=(c.notes&&c.notes.notes)||"";return '<div class="card" style="margin-top:14px"><div class="sub" style="margin-bottom:6px">What was said (saved when you press Call or Postpone)</div><textarea id="cnotes" rows="4" class="fi">'+esc(v)+'</textarea></div>'}
+function listHtml(){var h=H("Next in list ("+((ST.counts||{}).ready||0)+" left)")+'<div class="ll">';
+ (ST.queue||[]).forEach(function(q){h+='<div class="it"><b>'+esc(q.contact||q.name)+'</b> <span class="sub">'+esc(q.name)+' | '+esc(q.place||"")+'</span></div>'});
+ h+='</div>'+H("Today: "+((ST.today||{}).dialed||0)+" dialed, "+((ST.today||{}).connected||0)+" talked")+'<div class="ll">';
+ (ST.lines||[]).slice(0,15).forEach(function(l){h+='<div class="it"><b>'+esc(l.contact||l.name)+'</b> <span class="sub">'+new Date(l.started_at).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})+' | '+esc(l.state==="ended"?(RES[l.result]||l.result||""):l.state)+(l.recording_url?' | <a class="lk" target="_blank" href="'+esc(l.recording_url)+'">recording</a>':'')+'</span></div>'});
+ h+='</div>';var c=ST.config;
+ h+='<details style="margin-top:14px"><summary class="sub" style="cursor:pointer">Settings</summary><div class="card">'
+  +'<label class="sub">List<select id="clist" class="fi"><option value="khi_owners"'+(c.list_source==="khi_owners"?" selected":"")+'>KHI owners</option><option value="offices"'+(c.list_source==="offices"?" selected":"")+'>Leasing offices</option></select></label>'
+  +'<label class="sub">Phone that gets the live people<input id="cagent" class="fi" value="'+esc(c.agent_phone||"")+'"></label>'
+  +'<button class="cb go" onclick="saveSet()">Save</button> <button class="cb" onclick="act(\'load\',{source:$(\'clist\').value})">Reload list from CRM</button></div></details>';
+ return h}
+function saveSet(){act("settings",{list_source:$("clist").value,agent_phone:$("cagent").value.trim()})}
+function draw(force){drawBar();drawTabs();
+ var ae=document.activeElement,typing=ae&&(ae.id==="cnotes"||ae.id==="cagent"||ae.id==="clist");
+ var key=TAB+"|"+(CUR?(CUR.call_id||"q"+CUR.queue_id)+"|"+CUR.state:"none");
+ if(!typing&&(force||key!==DRAWN)){var keep=$("cnotes")&&DRAWN.split("|")[1]===(key.split("|")[1])?$("cnotes").value:null;
+  var h=!CUR?'<div class="card"><div class="empty">Nothing to call. Load the list in Settings below.</div></div>':TAB==="script"?(CUR.source==="offices"?scriptOffice(CUR):scriptOwner(CUR)):prospect(CUR);
+  if(CUR&&CUR.state==="ended"&&TAB==="script")h+=notesBox(CUR);
+  $("pane").innerHTML=h;if(keep!=null&&$("cnotes"))$("cnotes").value=keep;DRAWN=key;window.scrollTo(0,0)}
+ if(!typing||force)$("list").innerHTML=listHtml()}
+if(TOK)start();else showLogin();
 </script></body></html>
