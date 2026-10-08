@@ -69,7 +69,7 @@ function loadCaller(quiet){
  if(!CPIN){showLogin("");return Promise.resolve()}
  return dpost("lg_dialer_state",{p_pin:CPIN}).then(function(d){
   if(d.error){CPIN="";try{localStorage.removeItem("lgcs")}catch(e){};showLogin("Please sign in again.");return}
-  var c=d.config,t=d.today||{},n=d.counts||{};
+  var c=d.config,t=d.today||{},n=d.counts||{};CACT=c.active;
   var h='<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><span class="pill '+(c.active?'ok':'bad')+'" style="font-size:14px;padding:4px 12px">'+(c.active?'RUNNING':'STOPPED')+'</span> <span class="sub">Miami time '+esc(d.et)+' | window '+esc(c.window_et)+' Mon-Fri</span></div><div>'
    +(c.active?'<button class="cb" onclick="dc(\'stop\')">Stop</button> ':'<button class="cb go" onclick="dc(\'start\')">Start calling</button> ')
    +'<button class="cb" onclick="if(confirm(\'Stop and hang up all bot lines?\'))dc(\'hangup_all\')">Hang up all</button></div></div>'
@@ -110,7 +110,7 @@ function doSetup(){var a=$("sp1").value,b=$("sp2").value;if(a.length<8){$("lmsg"
 var m=location.hash.match(/setup=([a-f0-9]+)/);
 if(m){SETUP=m[1];showSetup()}else{loadCaller(false)}
 
-var CTAB="call",CUR=null,CURKEY="";
+var CACT=false,CTAB="call",CUR=null,CURKEY="";
 function fmtPhone(p){var d=String(p||"").replace(/\D/g,"").slice(-10);return d.length===10?"("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6):p||""}
 function first(n){return String(n||"").split(" ")[0]||"there"}
 function tc(s){return String(s||"").toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase()})}
@@ -149,7 +149,7 @@ function notesForm(c){var n=c.notes||{};function f(id,l,v,ph){return '<label sty
  function s(id,l,v,opts){return '<label style="display:block;margin:6px 0"><span class="sub">'+l+'</span><select id="n_'+id+'" style="display:block;width:100%;font-size:15px;padding:8px">'+opts.map(function(o){return '<option'+(o===v?' selected':'')+'>'+o+'</option>'}).join("")+'</select></label>'}
  return sh('After the call, write down')+'<div class="card">'+f('who','Who answered',n.who,c.contact)+f('manager','Who manages the property',n.manager)+s('happy','Happy with it?',n.happy,['','Yes','No','Self-managed','Unknown'])
  +s('interested','Interested?',n.interested,['','Meeting booked','Interested','Call back later','Not interested','Do not call','Wrong person'])+f('meeting','Meeting day and time',n.meeting,'e.g. Tue 2pm ET')+f('email','Email',n.email||c.email)
- +'<label style="display:block;margin:6px 0"><span class="sub">What was said</span><textarea id="n_notes" rows="4" style="display:block;width:100%;font-size:15px;padding:8px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3">'+esc(n.notes||"")+'</textarea></label>'
+ +'<label style="display:block;margin:6px 0"><span class="sub">Summary (edit if needed)</span><textarea id="n_notes" rows="4" style="display:block;width:100%;font-size:15px;padding:8px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3">'+esc(n.notes||(c.state==='ended'&&c.result!=='connected_to_agent'?'Bot: '+(CRES[c.result]||c.result||''):''))+'</textarea></label>'
  +'<button class="cb go" onclick="saveNote()">Save</button> <span id="nmsg" class="sub">'+(n.saved_at?'Saved':'')+'</span></div>'}
 function saveNote(){if(!CUR)return;var o={};["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){o[k]=$("n_"+k).value});$("nmsg").textContent="Saving...";
  dpost("lg_dialer_note",{p_pin:CPIN,p_call_id:CUR.call_id,p_note:o}).then(function(r){$("nmsg").textContent=r.error?r.error:"Saved"}).catch(function(e){$("nmsg").textContent="Not saved: "+e.message})}
@@ -168,13 +168,29 @@ function renderTabs(){
   CURKEY=key;
   var h='<div style="display:flex;gap:8px;margin:12px 0">'+tabBtn("call","On the call")+tabBtn("rep","Who we represent")+'</div>';
   if(CTAB==="rep"){h+=represent()}
-  else if(!CUR){h+='<div class="card"><div class="empty">No call yet. Press Start calling. The script for the person on the line appears here.</div></div>'}
-  else{var st=CUR.state==='transferred'?pill('ON THE LINE WITH YOU','ok'):CUR.state==='dialing'?pill('Bot is dialing','wn'):pill(CRES[CUR.result]||CUR.result||'Ended','');
+  else if(!CUR){h+='<div class="card"><div class="empty">'+(CACT?'Dialing the next one...':'Press Start calling. The person on the line and their script show here.')+'</div></div>'}
+  else{var ended=CUR.state==='ended',st=CUR.state==='transferred'?pill('ON THE LINE WITH YOU','ok'):CUR.state==='dialing'?pill('Bot is dialing / in the phone menu','wn'):pill('Call ended: '+(CRES[CUR.result]||CUR.result||'ended'),CUR.result==='connected_to_agent'?'ok':'bad');
    h+='<div class="card"><div>'+st+'</div><div style="font-size:19px;font-weight:700;margin-top:6px">'+esc(CUR.contact||CUR.company)+'</div>'
     +'<div class="sub">'+esc(CUR.company||'')+'</div><div style="font-size:15px;margin-top:4px">'+esc(tc(CUR.address)||CUR.place||'')+(CUR.city?', '+esc(tc(CUR.city)):'')+(CUR.units?' | '+CUR.units+' units':'')+'</div>'
     +'<div style="margin-top:4px"><a href="tel:'+esc(CUR.phone)+'" style="color:var(--ac)">'+esc(fmtPhone(CUR.phone))+'</a>'+(CUR.email?' | '+esc(CUR.email):'')+'</div>'
-    +(CUR.why?'<div class="sub" style="margin-top:4px">'+esc(CUR.why)+'</div>':'')+'</div>'
-    +(CUR.source==='offices'?scriptOffice(CUR):scriptOwner(CUR))+notesForm(CUR)}
-  box.innerHTML=h;
+    +(CUR.why?'<div class="sub" style="margin-top:4px">'+esc(CUR.why)+'</div>':'')+nextBar(ended)+'</div>';
+   var sc=(CUR.source==='offices'?scriptOffice(CUR):scriptOwner(CUR));
+   if(ended){h+=notesForm(CUR)+'<details style="margin-top:10px"><summary class="sub" style="cursor:pointer">Show script</summary>'+sc+'</details>'}
+   else{h+=sc+notesForm(CUR)}}
+  var keep={};if(box.getAttribute("data-call")===(CUR&&CUR.call_id)){["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){var e=$("n_"+k);if(e)keep[k]=e.value})}
+  box.innerHTML=h;box.setAttribute("data-call",CUR?CUR.call_id:"");for(var k in keep){var e=$("n_"+k);if(e)e.value=keep[k]}
  }).catch(function(){})}
+
+function nextBar(ended){
+ if(!ended)return CUR.state==='transferred'?'<div class="sub" style="margin-top:8px">When you hang up, the summary shows here. Then press Next.</div>':'';
+ return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="cb go" style="flex:2;padding:12px;font-size:17px" onclick="goNext()">Next</button>'
+ +'<select id="ppw" style="flex:1;font-size:15px;padding:8px"><option value="2">in 2 hours</option><option value="24" selected>tomorrow</option><option value="168">next week</option></select>'
+ +'<button class="cb" style="flex:1;padding:12px" onclick="goPostpone()">Postpone</button></div>'}
+function noteObj(){var o={};["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){var e=$("n_"+k);o[k]=e?e.value:""});return o}
+function advance(action,args){if(!CUR)return;var id=CUR.call_id;var o=noteObj();
+ $("ctabs").innerHTML='<div class="card" style="margin-top:12px"><div class="empty">'+(action==='postpone'?'Postponed. ':'')+'Saving and dialing the next one...</div></div>';CURKEY="";
+ dpost("lg_dialer_note",{p_pin:CPIN,p_call_id:id,p_note:o}).catch(function(){}).then(function(){return dpost("lg_dialer_control",{p_pin:CPIN,p_action:action,p_args:Object.assign({call_id:id},args||{})})})
+ .then(function(r){if(r&&r.error)alert(r.error);CURKEY="";loadCaller(true)}).catch(function(e){alert("Failed: "+e.message);CURKEY="";renderTabs()})}
+function goNext(){advance("next")}
+function goPostpone(){advance("postpone",{hours:+$("ppw").value})}
 </script></body></html>
