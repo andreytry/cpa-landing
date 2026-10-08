@@ -46,9 +46,13 @@ details.ct{background:#161b22;border:1px solid #30363d;border-radius:10px;margin
 .rsw{flex-wrap:wrap}
 .rc{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}.rc-positive{background:rgba(63,185,80,.15);color:#3fb950}.rc-neutral{background:rgba(210,153,34,.15);color:#d29922}.rc-negative{background:rgba(248,81,73,.15);color:#f85149}.rc-no_contact,.rc-unknown{background:rgba(110,118,129,.2);color:#8b949e}
 .ipg{display:grid;grid-template-columns:52px 1fr 1fr;gap:6px 10px;align-items:center}.iph{color:var(--mut);font-size:12px;font-weight:600}.ipl{color:var(--mut);font-size:12px}.ipc span{color:var(--mut);font-size:12px}.ipb{height:4px;background:var(--line);border-radius:2px;margin-top:2px;overflow:hidden}.ipb i{display:block;height:100%;background:var(--ok)}
-.fchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(127,127,127,.35);border-radius:999px;cursor:pointer;font-size:13px;user-select:none;opacity:.5;transition:all .15s}.chip.on{opacity:1;border-color:var(--ok);background:rgba(34,197,94,.12)}.chip input{accent-color:var(--ok);margin:0;cursor:pointer}.chip b{font-weight:600;color:var(--mut)}.fl{font-size:12px;color:var(--mut);margin-right:4px;min-width:56px}.lnk{background:none;border:none;color:var(--mut);cursor:pointer;font-size:12px;text-decoration:underline;padding:2px 4px}.cb{background:var(--card);border:1px solid var(--line);color:var(--tx);padding:9px 16px;border-radius:8px;font:600 14px inherit;cursor:pointer}.cb.go{background:var(--ok);border-color:var(--ok);color:#0d1117}.cb.sm{padding:3px 10px;font-size:12px}.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.cg label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}.cg input,.cg select{background:#0d1117;border:1px solid var(--line);color:var(--tx);padding:8px;border-radius:6px;font-size:14px}</style></head><body>
+.fchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid rgba(127,127,127,.35);border-radius:999px;cursor:pointer;font-size:13px;user-select:none;opacity:.5;transition:all .15s}.chip.on{opacity:1;border-color:var(--ok);background:rgba(34,197,94,.12)}.chip input{accent-color:var(--ok);margin:0;cursor:pointer}.chip b{font-weight:600;color:var(--mut)}.fl{font-size:12px;color:var(--mut);margin-right:4px;min-width:56px}.lnk{background:none;border:none;color:var(--mut);cursor:pointer;font-size:12px;text-decoration:underline;padding:2px 4px}.cb{background:var(--card);border:1px solid var(--line);color:var(--tx);padding:9px 16px;border-radius:8px;font:600 14px inherit;cursor:pointer}.cb.go{background:var(--ok);border-color:var(--ok);color:#0d1117}.cb.sm{padding:3px 10px;font-size:12px}.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.cg label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}.cg input,.cg select{background:#0d1117;border:1px solid var(--line);color:var(--tx);padding:8px;border-radius:6px;font-size:14px}.tb{display:flex;border-bottom:1px solid #30363d;margin:12px -16px 0;padding:0 8px;position:sticky;top:0;background:var(--bg,#0d1117);z-index:5}
+.tb a{flex:1;text-align:center;padding:12px 4px;font-size:15px;color:#8b949e;text-decoration:none;border-bottom:3px solid transparent;-webkit-tap-highlight-color:transparent}
+.tb a.on{color:#e6edf3;border-bottom-color:var(--ac,#2f81f7);font-weight:600}
+.sig{background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px;margin:8px 0;font-size:15px;line-height:1.5}
+</style></head><body>
 <header style="padding:14px 16px 0"><h1 style="margin:0;font-size:20px">Caller</h1><div class="sub">Bot gets through phone menus. Live people are put through to your phone.</div></header>
-<main style="padding:12px 16px"><div id="cstatus"></div><div id="ctabs" style="display:none"></div><div id="cbox"><div class="empty">Loading...</div></div></main>
+<main style="padding:12px 16px"><div id="cstatus"></div><div id="tabbar" style="display:none"></div><div id="ctabs"></div><div id="cbox"><div class="empty">Loading...</div></div></main>
 <script>
 var API="https://zkylrolpuwybsksspblj.supabase.co/rest/v1/rpc/";
 var K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpreWxyb2xwdXd5YnNrc3NwYmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MTgwOTIsImV4cCI6MjA5NDQ5NDA5Mn0.xXfcM2u1FrZZujo-1KNnLGkPSkaoRGkjgk7KreB1TPM";
@@ -92,13 +96,17 @@ function loadCaller(quiet){
    +'<label>Overlap: start next dial after (sec)<input id="cpre" type="number" value="'+c.predial_after_sec+'"></label>'
    +'<label>Daily cap<input id="ccap" type="number" value="'+c.daily_cap+'"></label>'
    +'</div><div style="margin-top:10px"><button class="cb go" onclick="cSave()">Save settings</button> <button class="cb" onclick="dc(\'load\',{source:$(\'clist\').value})">Load / refresh list from CRM</button></div></div>';
-  $("cbox").innerHTML=h;
+  var si=h.indexOf('<h2>Settings</h2>');var lp=h.slice(0,si),sp=h.slice(si);
+  $("cbox").setAttribute("data-list",lp);var ae=document.activeElement;var inSet=ae&&$("ctabs").contains(ae)&&CTAB==="set";
+  if(CTAB==="list")$("ctabs").innerHTML=lp;
+  if(CTAB==="set"&&!inSet)$("ctabs").innerHTML=sp;
+  LASTSET=sp;$("cbox").innerHTML="";
  }).catch(function(e){if(!quiet)$("cbox").innerHTML='<div class="err">Caller load failed: '+esc(e.message)+' <button class="cb" onclick="loadCaller()">Retry</button></div>'});
 }
 
 function setPin(){}
 function inp(id,type,ph,ac){return '<input id="'+id+'" type="'+type+'" placeholder="'+ph+'" autocomplete="'+ac+'" onkeydown="if(event.key===\'Enter\')'+(id==='lp'?'doLogin()':id==='sp2'?'doSetup()':(id==='sp'||id==='sc')?'finishSignup()':id==='se'?'sendCode()':id==='sp1'?'$(&quot;sp2&quot;).focus()':id==='le'?'$(&quot;lp&quot;).focus()':'void 0')+'" style="display:block;width:100%;max-width:320px;font-size:17px;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3">'}
-function showLogin(msg){$("cstatus").innerHTML="";$("ctabs").style.display="none";$("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Sign in</h3>'+inp("le","email","Email","username")+inp("lp","password","Password","current-password")+'<button class="cb go" onclick="doLogin()" style="width:100%;max-width:320px;padding:10px">Sign in</button><div id="lmsg" class="sub" style="margin-top:8px;color:#f85149">'+esc(msg)+'</div><div style="margin-top:10px"><button class="cb" onclick="showSignup()" style="width:100%;max-width:320px;padding:10px">Sign up</button></div><div style="margin-top:12px"><a href="#" onclick="showSignup(1);return false" style="color:var(--ac);font-size:15px">Forgot password?</a></div></div>'}
+function showLogin(msg){$("cstatus").innerHTML="";$("tabbar").style.display="none";$("ctabs").innerHTML="";$("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Sign in</h3>'+inp("le","email","Email","username")+inp("lp","password","Password","current-password")+'<button class="cb go" onclick="doLogin()" style="width:100%;max-width:320px;padding:10px">Sign in</button><div id="lmsg" class="sub" style="margin-top:8px;color:#f85149">'+esc(msg)+'</div><div style="margin-top:10px"><button class="cb" onclick="showSignup()" style="width:100%;max-width:320px;padding:10px">Sign up</button></div><div style="margin-top:12px"><a href="#" onclick="showSignup(1);return false" style="color:var(--ac);font-size:15px">Forgot password?</a></div></div>'}
 function showSignup(reset){var e=($("le")&&$("le").value)||"";$("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Sign up</h3><div class="sub">Enter your email. You get a 6-digit code.</div>'+inp("se","email","Email","username")+'<button class="cb go" onclick="sendCode()" style="width:100%;max-width:320px;padding:10px">Send code</button><div id="scode" style="display:none">'+inp("sc","text","6-digit code","one-time-code")+inp("sp","password","New password (8+ characters)","new-password")+'<button class="cb go" onclick="finishSignup()" style="width:100%;max-width:320px;padding:10px">Save and sign in</button></div><div id="lmsg" class="sub" style="margin-top:8px"></div><div style="margin-top:10px"><button class="cb" onclick="showLogin(\'\')" style="width:100%;max-width:320px;padding:10px">Sign in</button></div></div>';$("se").value=e}
 function sendCode(){var e=$("se").value.trim();if(!e)return;$("lmsg").textContent="Sending...";dpost("lg_caller_code_start",{p_email:e}).then(function(r){$("lmsg").textContent=r.msg||r.error||"";$("scode").style.display="block";$("sc").focus()}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
 function finishSignup(){var e=$("se").value.trim(),c=$("sc").value.trim(),pw=$("sp").value;if(pw.length<8){$("lmsg").textContent="Use at least 8 characters";return}$("lmsg").textContent="Checking...";
@@ -106,7 +114,7 @@ function finishSignup(){var e=$("se").value.trim(),c=$("sc").value.trim(),pw=$("
 function doLogin(){var e=$("le").value.trim(),p=$("lp").value;if(!e||!p)return;$("lmsg").textContent="Checking...";dpost("lg_caller_login",{p_email:e,p_password:p}).then(function(r){if(r.error){$("lmsg").textContent=r.error;return}CPIN=r.token;try{localStorage.setItem("lgcs",CPIN)}catch(x){}loadCaller(false)}).catch(function(x){$("lmsg").textContent="Network error: "+x.message})}
 function logout(){var t=CPIN;CPIN="";try{localStorage.removeItem("lgcs")}catch(x){}dpost("lg_caller_logout",{p_tok:t}).catch(function(){});showLogin("")}
 var SETUP="";
-function showSetup(){$("cstatus").innerHTML="";$("ctabs").style.display="none";dpost("lg_caller_setup_info",{p_setup:SETUP}).then(function(r){if(r.error){showLogin(r.error);return}
+function showSetup(){$("cstatus").innerHTML="";$("tabbar").style.display="none";$("ctabs").innerHTML="";dpost("lg_caller_setup_info",{p_setup:SETUP}).then(function(r){if(r.error){showLogin(r.error);return}
  $("cbox").innerHTML='<div class="card" style="max-width:380px;margin:30px auto"><h3>Welcome '+esc(r.name||"")+'</h3><div class="sub">Create your password for '+esc(r.email)+'</div><input type="email" autocomplete="username" value="'+esc(r.email)+'" style="display:none">'+inp("sp1","password","New password (8+ characters)","new-password")+inp("sp2","password","Repeat password","new-password")+'<button class="cb go" onclick="doSetup()" style="width:100%;max-width:320px;padding:10px">Save and sign in</button><div id="lmsg" class="sub" style="margin-top:8px;color:#f85149"></div></div>'})
  .catch(function(x){showLogin("Network error: "+x.message)})}
 function doSetup(){var a=$("sp1").value,b=$("sp2").value;if(a.length<8){$("lmsg").textContent="Use at least 8 characters";return}if(a!==b){$("lmsg").textContent="Passwords do not match";return}
@@ -120,17 +128,32 @@ function first(n){return String(n||"").split(" ")[0]||"there"}
 function tc(s){return String(s||"").toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase()})}
 function q(s){return '<div style="background:#161b22;border-left:3px solid var(--ac);padding:8px 10px;margin:6px 0;border-radius:4px;font-size:15px;line-height:1.45">'+s+'</div>'}
 function sh(t){return '<h3 style="margin:14px 0 4px;font-size:15px">'+t+'</h3>'}
+var MON=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function vertHead(c){var list=c.source==='offices'?'Leasing offices':'KHI owners';
+ return '<div class="sig" style="border-color:var(--ac)"><b>Vertical:</b> Property management<br><b>Client:</b> KHI Real Estate<br><b>List:</b> '+list+'</div>'}
+function signals(c){var s=c.sig||{},w=c.why||"",out=[],addr=tc(c.address)||"the building";
+ if(s.recent_buy||/recent purchase/.test(w)){var when=s.sale_yr?(MON[s.sale_mo||0]||"")+" "+s.sale_yr:"recently";
+  out.push({t:'Recent purchase ('+when.trim()+')',say:'Congratulations on buying '+esc(addr)+(s.sale_yr?' in '+esc(when.trim()):'')+'. Have you set up management for it yet?'})}
+ if(/no manager/.test(w))out.push({t:'No management company listed',say:'I noticed '+esc(addr)+' does not list a management company. Are you managing it yourself?'});
+ if(s.oos||/out-of-state/.test(w)){var fr=s.own_city?tc(s.own_city)+(s.own_state?', '+s.own_state:''):'out of state';
+  out.push({t:'Owner lives out of state ('+esc(fr)+')',say:'I see you are based in '+esc(fr)+'. Running a building in Florida from there can take a lot of time. How do you handle it today?'})}
+ var m=(w.match(/mgr: ([^,]+)/)||[])[1];if(m)out.push({t:'Current manager: '+esc(m),say:'I see '+esc(m)+' manages it today. Are you happy with them?'});
+ if(s.recert_open)out.push({t:'Building recertification open',say:'I also saw the building has an open recertification. Who is handling that for you?'});
+ if(s.yr_built&&s.yr_built<1990)out.push({t:'Older building (built '+s.yr_built+')',say:''});
+ return out}
 function scriptOwner(c){
  var nm=c.contact||"the owner",fn=first(c.contact),addr=tc(c.address)||c.place||"your building",city=tc(c.city);
  var why=c.why||"",noMgr=/no manager/.test(why),mgr=(why.match(/mgr: ([^,]+)/)||[])[1];
  var h=sh('1. Opening')+q('Hi, is this <b>'+esc(nm)+'</b>? This is Alex from aiProcess in Miami. I\'m calling about your apartment building at <b>'+esc(addr)+(city?', '+esc(city):'')+'</b>. Do you have one minute?')
  +'<div class="sub">Not the owner on the phone: '+q('Who is the best person to talk to about the property at '+esc(addr)+'? What is their number?')+'</div>';
- h+=sh('2. Who manages it')+(noMgr?'<div class="sub">We have no manager on record for this building.</div>':'')+(mgr?'<div class="sub">On record: '+esc(mgr)+'</div>':'')+q('Who manages the property today?');
- h+=sh('3. Are they happy')+'<div class="sub">They manage it themselves:</div>'+q('How is that working for you, '+esc(fn)+'? Is it taking a lot of your time?')
+ var sg=signals(c);
+ if(sg.length){h+=sh('2. Why we call (use the first that fits)');sg.forEach(function(g,i){h+='<div class="sub" style="margin-top:6px"><b>Signal '+(i+1)+':</b> '+g.t+'</div>'+(g.say?q(g.say):'')})}
+ h+=sh((sg.length?'3':'2')+'. Who manages it')+(noMgr?'<div class="sub">We have no manager on record for this building.</div>':'')+(mgr?'<div class="sub">On record: '+esc(mgr)+'</div>':'')+q('Who manages the property today?');
+ h+=sh('Are they happy')+'<div class="sub">They manage it themselves:</div>'+q('How is that working for you, '+esc(fn)+'? Is it taking a lot of your time?')
  +'<div class="sub">They have a manager:</div>'+q('Are you happy with them?');
- h+=sh('4. Offer')+q('We work with a pool of qualified, vetted property managers in Florida. We connect them with owners, and there is no cost to you. Would you be open to a short call with one of them this week?');
- h+=sh('5. If yes')+q('Great. What day and time works best for you? And what is the best email for the invite?')+'<div class="sub">Repeat the day, time and email back to confirm.'+(c.email?' Email on file: <b>'+esc(c.email)+'</b>':'')+'</div>';
- h+=sh('6. If no')+q('No problem. Is it okay if I check back with you in a few months?');
+ h+=sh('Offer')+q('We work with a pool of qualified, vetted property managers in Florida. We connect them with owners, and there is no cost to you. Would you be open to a short call with one of them this week?');
+ h+=sh('If yes')+q('Great. What day and time works best for you? And what is the best email for the invite?')+'<div class="sub">Repeat the day, time and email back to confirm.'+(c.email?' Email on file: <b>'+esc(c.email)+'</b>':'')+'</div>';
+ h+=sh('If no')+q('No problem. Is it okay if I check back with you in a few months?');
  h+=sh('Fallbacks')
  +'<div class="sub">"Who are you?"</div>'+q('aiProcess. We connect building owners with vetted property managers.')
  +'<div class="sub">"What does it cost?"</div>'+q('Nothing for you.')
@@ -163,22 +186,22 @@ function represent(){return '<div class="card">'+sh('Client: KHI Real Estate')+'
  +sh('How to present it')+'<div style="font-size:15px;line-height:1.5">As in the script: "a vetted property manager". The details go to the owner by email before the meeting.</div></div>'}
 function tabBtn(k,l){return '<button class="cb'+(CTAB===k?' go':'')+'" onclick="CTAB=\''+k+'\';CURKEY=\'\';renderTabs()" style="flex:1">'+l+'</button>'}
 function renderTabs(){
- var box=$("ctabs");box.style.display="block";
+ drawTabbar();var box=$("ctabs");if(CTAB!=="call")return;
  var a=document.activeElement;if(a&&a.id&&a.id.indexOf("n_")===0&&box.contains(a))return; // never redraw while typing
  dpost("lg_dialer_current",{p_pin:CPIN}).then(function(c){
   if(c.error)return;CUR=c.none?null:c;
   var key=CTAB+"|"+(c.call_id||"")+"|"+(c.state||"");if(key===CURKEY)return;
   var a2=document.activeElement;if(a2&&a2.id&&a2.id.indexOf("n_")===0&&box.contains(a2))return;
   CURKEY=key;
-  var h='<div style="display:flex;gap:8px;margin:12px 0">'+tabBtn("call","On the call")+tabBtn("rep","Who we represent")+'</div>';
-  if(CTAB==="rep"){h+=represent()}
-  else if(!CUR){h+='<div class="card"><div class="empty">'+(CACT?'Dialing the next one...':'Press Start calling. The person on the line and their script show here.')+'</div></div>'}
+  if(CTAB!=="call")return;
+  var h='';
+  if(!CUR){h+='<div class="card"><div class="empty">'+(CACT?'Dialing the next one...':'Press Start calling. The person on the line and their script show here.')+'</div></div>'}
   else{var ended=CUR.state==='ended',st=CUR.state==='transferred'?pill('ON THE LINE WITH YOU','ok'):CUR.state==='dialing'?pill('Bot is dialing / in the phone menu','wn'):pill('Call ended: '+(CRES[CUR.result]||CUR.result||'ended'),CUR.result==='connected_to_agent'?'ok':'bad');
    h+='<div class="card"><div>'+st+'</div><div style="font-size:19px;font-weight:700;margin-top:6px">'+esc(CUR.contact||CUR.company)+'</div>'
     +'<div class="sub">'+esc(CUR.company||'')+'</div><div style="font-size:15px;margin-top:4px">'+esc(tc(CUR.address)||CUR.place||'')+(CUR.city?', '+esc(tc(CUR.city)):'')+(CUR.units?' | '+CUR.units+' units':'')+'</div>'
     +'<div style="margin-top:4px"><a href="tel:'+esc(CUR.phone)+'" style="color:var(--ac)">'+esc(fmtPhone(CUR.phone))+'</a>'+(CUR.email?' | '+esc(CUR.email):'')+'</div>'
     +(CUR.why?'<div class="sub" style="margin-top:4px">'+esc(CUR.why)+'</div>':'')+nextBar(ended)+'</div>';
-   var sc=(CUR.source==='offices'?scriptOffice(CUR):scriptOwner(CUR));
+   var sc=vertHead(CUR)+(CUR.source==='offices'?scriptOffice(CUR):scriptOwner(CUR));
    if(ended){h+=notesForm(CUR)+'<details style="margin-top:10px"><summary class="sub" style="cursor:pointer">Show script</summary>'+sc+'</details>'}
    else{h+=sc+notesForm(CUR)}}
   var keep={};if(box.getAttribute("data-call")===(CUR&&CUR.call_id)){["who","manager","happy","interested","meeting","email","notes"].forEach(function(k){var e=$("n_"+k);if(e)keep[k]=e.value})}
@@ -197,4 +220,13 @@ function advance(action,args){if(!CUR)return;var id=CUR.call_id;var o=noteObj();
  .then(function(r){if(r&&r.error)alert(r.error);CURKEY="";loadCaller(true)}).catch(function(e){alert("Failed: "+e.message);CURKEY="";renderTabs()})}
 function goNext(){advance("next")}
 function goPostpone(){advance("postpone",{hours:+$("ppw").value})}
+
+var LASTSET="";
+var TABS=[["call","Call"],["rep","Client"],["list","List"],["set","Settings"]];
+function drawTabbar(){var b=$("tabbar");b.style.display="block";b.innerHTML='<div class="tb">'+TABS.map(function(t){return '<a href="#" class="'+(CTAB===t[0]?'on':'')+'" onclick="setTab(\''+t[0]+'\');return false">'+t[1]+'</a>'}).join("")+'</div>'}
+function setTab(t){CTAB=t;CURKEY="";drawTabbar();var box=$("ctabs");box.setAttribute("data-call","");
+ if(t==="call"){box.innerHTML='<div class="empty">Loading...</div>';renderTabs()}
+ else if(t==="rep"){box.innerHTML=represent()}
+ else if(t==="list"){box.innerHTML=$("cbox").getAttribute("data-list")||'<div class="empty">Loading...</div>';loadCaller(true)}
+ else if(t==="set"){box.innerHTML=LASTSET||'<div class="empty">Loading...</div>'}}
 </script></body></html>
