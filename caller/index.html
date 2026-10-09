@@ -66,7 +66,7 @@ details.ct{background:#161b22;border:1px solid #30363d;border-radius:10px;margin
 .ll .it{padding:8px 0;border-bottom:1px solid #21262d;font-size:15px}
 </style></head><body>
 <main style="padding:12px 16px;max-width:720px;margin:0 auto"><div id="auth"></div>
-<div id="app" style="display:none"><div id="bar"></div><div id="tabs"></div><div id="pane"></div><div id="list"></div></div></main>
+<div id="app" style="display:none"><div id="phone"></div><div id="bar"></div><div id="tabs"></div><div id="pane"></div><div id="list"></div></div></main>
 <script>
 var API="https://zkylrolpuwybsksspblj.supabase.co/rest/v1/rpc/";
 var K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpreWxyb2xwdXd5YnNrc3NwYmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MTgwOTIsImV4cCI6MjA5NDQ5NDA5Mn0.xXfcM2u1FrZZujo-1KNnLGkPSkaoRGkjgk7KreB1TPM";
@@ -115,11 +115,15 @@ function stateInfo(){var c=ST.config;if(!CUR)return {t:c.active?"Dialing...":"Li
  if(CUR.state==="transferred")return {t:"On the line with you",cls:"ok",canCall:false,canPost:false};
  if(CUR.state==="ended")return {t:"Call ended: "+(RES[CUR.result]||CUR.result||""),cls:CUR.result==="connected_to_agent"?"ok":"bad",canCall:true,canPost:true};
  return {t:c.active?"Dialing...":"Next: "+esc(CUR.contact||CUR.company),cls:"",canCall:!c.active,canPost:!c.active}}
-function drawBar(){if(!ST)return;var s=stateInfo(),c=ST.config;
+function drawPhone(){var e=$("myph");if(e&&document.activeElement===e)return;var v=ST.my_phone||"";
+ $("phone").innerHTML='<div class="card" style="margin-bottom:10px'+(v?'':';border-color:#d29922')+'"><div class="sub">'+(v?'Live people are put through to your phone:':'<b style="color:#d29922">Enter your phone number to start calling</b>')+'</div>'
+ +'<div style="display:flex;gap:8px;align-items:center"><input id="myph" class="fi" type="tel" inputmode="tel" autocomplete="tel" placeholder="+1 305 555 1234" value="'+esc(v)+'" onkeydown="if(event.key===\'Enter\')savePhone()" style="flex:1;margin:6px 0"><button class="cb go" onclick="savePhone()">Save</button></div><div id="phmsg" class="msg"></div></div>'}
+function savePhone(){var v=$("myph").value.trim();if(!v)return;$("phmsg").textContent="Saving...";dpost("lg_caller_set_phone",{p_tok:TOK,p_phone:v}).then(function(r){if(r.error){$("phmsg").textContent=r.error;return}ST.my_phone=r.phone;$("myph").blur();drawPhone();$("phmsg").style.color="#3fb950";$("phmsg").textContent="Saved: "+r.phone;drawBar()}).catch(function(e){$("phmsg").textContent="Failed: "+e.message})}
+function drawBar(){if(!ST)return;var s=stateInfo(),c=ST.config;if(!ST.my_phone){s.canCall=false}
  $("bar").innerHTML='<div class="card"><div class="stl '+s.cls+'">'+s.t+'</div>'
   +'<div class="btns"><button class="cb go big" '+((s.canCall&&!BUSY)?'':'disabled')+' onclick="doCall()">'+(BUSY?'...':'Call')+'</button>'
   +'<button class="cb big" '+((s.canPost&&!BUSY)?'':'disabled')+' onclick="doPostpone()">Postpone</button></div>'
-  +'<div class="sub" style="margin-top:8px">'+(c.active?'Running | <a href="#" class="lk" onclick="doStop();return false">Stop</a> | ':'Stopped | ')+'Miami '+esc(ST.et)+' | calls go to '+esc(c.agent_phone||'-')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>'}
+  +'<div class="sub" style="margin-top:8px">'+(c.active?'Running | <a href="#" class="lk" onclick="doStop();return false">Stop</a> | ':'Stopped | ')+'Miami '+esc(ST.et)+' | '+esc(ST.me||'')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>'}
 function drawTabs(){$("tabs").innerHTML='<div class="tb"><a href="#" class="'+(TAB==="script"?"on":"")+'" onclick="TAB=\'script\';DRAWN=\'\';draw(true);return false">Script</a><a href="#" class="'+(TAB==="prospect"?"on":"")+'" onclick="TAB=\'prospect\';DRAWN=\'\';draw(true);return false">Prospect</a></div>'}
 function L(s){return '<div class="say">'+s+'</div>'}
 function H(t){return '<h3 class="sh">'+t+'</h3>'}
@@ -173,11 +177,10 @@ function listHtml(){var h=H("Next in list ("+((ST.counts||{}).ready||0)+" left)"
  h+='</div>';var c=ST.config;
  h+='<details style="margin-top:14px"><summary class="sub" style="cursor:pointer">Settings</summary><div class="card">'
   +'<label class="sub">List<select id="clist" class="fi"><option value="khi_owners"'+(c.list_source==="khi_owners"?" selected":"")+'>KHI owners</option><option value="offices"'+(c.list_source==="offices"?" selected":"")+'>Leasing offices</option></select></label>'
-  +'<label class="sub">Phone that gets the live people<input id="cagent" class="fi" value="'+esc(c.agent_phone||"")+'"></label>'
   +'<button class="cb go" onclick="saveSet()">Save</button> <button class="cb" onclick="act(\'load\',{source:$(\'clist\').value})">Reload list from CRM</button></div></details>';
  return h}
-function saveSet(){act("settings",{list_source:$("clist").value,agent_phone:$("cagent").value.trim()})}
-function draw(force){drawBar();drawTabs();
+function saveSet(){act("settings",{list_source:$("clist").value})}
+function draw(force){drawPhone();drawBar();drawTabs();
  var ae=document.activeElement,typing=ae&&(ae.id==="cnotes"||ae.id==="cagent"||ae.id==="clist");
  var key=TAB+"|"+(CUR?(CUR.call_id||"q"+CUR.queue_id)+"|"+CUR.state:"none");
  if(!typing&&(force||key!==DRAWN)){var keep=$("cnotes")&&DRAWN.split("|")[1]===(key.split("|")[1])?$("cnotes").value:null;
