@@ -101,7 +101,7 @@ function refresh(force){if(!TOK){showLogin();return}
   ST=a[0];MAN=a[2]&&!a[2].error?a[2]:{none:true,count:0};if(MAN.state==="manual")MODE="direct";BOTCUR=a[1].none?null:a[1];liveAlert(BOTCUR);CUR=MODE==="direct"?(MAN.none?null:MAN):BOTCUR;draw(force)}).catch(function(e){$("bar").innerHTML='<div class="err">Connection problem: '+esc(e.message)+'</div>'})}
 
 /* ---------- actions ---------- */
-function act(a,args){if(BUSY)return;BUSY=true;drawBar();
+function act(a,args){if(BUSY)return;BUSY=true;drawBar();setTimeout(function(){if(BUSY){BUSY=false;DRAWN="";refresh(true)}},20000);
  var notes=$("cnotes")?$("cnotes").value:"";var p=Promise.resolve();
  if(CUR&&CUR.call_id&&notes.trim()&&notes!==SAVEDNOTE)p=saveNote().catch(function(){});
  p.then(function(){return dpost("lg_dialer_control",{p_pin:TOK,p_action:a,p_args:args||{}})}).then(function(r){BUSY=false;if(r&&r.error)alert(r.error);DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert("Failed: "+e.message);refresh(true)})}
@@ -109,11 +109,11 @@ function doCall(){if(!ST)return;if(!ST.config.active)act("start");else act("next
 function doPostpone(){if(!CUR)return;if(MODE==="direct"){if(BUSY)return;BUSY=true;var v=$("cnotes")?$("cnotes").value:"";var pr=(CUR.call_id&&v.trim()&&v!==SAVEDNOTE)?saveNote():Promise.resolve();
  pr.then(function(){return dpost("lg_dialer_manual",{p_tok:TOK,p_action:"postpone",p_args:CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id}})}).then(function(){BUSY=false;DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert(e.message)});return}
  act("postpone",CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id})}
-function doStop(){act("stop")}
+function doStop(){BUSY=false;var c=ST&&ST.config||{};act(((c.dialing_now||0)>0||(CUR&&CUR.state==="dialing"))?"hangup_all":"stop")}
 
 /* ---------- render ---------- */
 function stateInfo(){var c=ST.config;if(!CUR)return {t:c.active?"Dialing...":"List is empty",cls:"wn",canCall:!c.active,canPost:false};
- if(CUR.state==="dialing")return {t:"Bot is dialing "+esc(CUR.contact||CUR.company),cls:"wn",canCall:false,canPost:false};
+ if(CUR.state==="dialing")return {t:"Bot is dialing "+esc(CUR.contact||CUR.company),cls:"wn",canCall:!c.active,canPost:false};
  if(CUR.state==="transferred")return {t:"ON THE LINE NOW: "+esc(CUR.contact||CUR.company)+(CUR.units?" ("+CUR.units+" units)":""),cls:"ok",canCall:false,canPost:false};
  if(CUR.state==="ended")return {t:"Call ended: "+(RES[CUR.result]||CUR.result||""),cls:CUR.result==="connected_to_agent"?"ok":"bad",canCall:true,canPost:true};
  return {t:c.active?"Dialing...":"Next: "+esc(CUR.contact||CUR.company),cls:"",canCall:!c.active,canPost:!c.active}}
@@ -140,7 +140,7 @@ function finishDirect(){if(BUSY||!CUR)return;BUSY=true;drawBar();var v=$("cnotes
 function drawBar(){if(!ST)return;if(MODE==="direct"){drawBarDirect();return}var s=stateInfo(),c=ST.config;if(!ST.my_phone){s.canCall=false}
  $("bar").innerHTML='<div class="card">'+modeSw()+'<div class="stl '+s.cls+'">'+s.t+'</div>'
   +'<div class="btns"><button class="cb go big" '+((s.canCall&&!BUSY)?'':'disabled')+' onclick="doCall()">'+(BUSY?'...':'Call')+'</button>'
-  +'<button class="cb big" '+((s.canPost&&!BUSY)?'':'disabled')+' onclick="doPostpone()">Postpone</button></div>'+(c.active?'<div style="text-align:right;margin-top:8px"><button class="cb" style="padding:5px 12px;font-size:13px;color:#f85149;border-color:#f8514966;background:transparent" onclick="doStop()">&#9632; Stop calling</button></div>':'')
+  +'<button class="cb big" '+((s.canPost&&!BUSY)?'':'disabled')+' onclick="doPostpone()">Postpone</button></div>'+((c.active||(c.dialing_now||0)>0||(CUR&&CUR.state==="dialing"))?'<div style="text-align:right;margin-top:8px"><button class="cb" style="padding:5px 12px;font-size:13px;color:#f85149;border-color:#f8514966;background:transparent" onclick="doStop()">&#9632; '+(c.active?'Stop calling':'Cancel calls')+'</button></div>':'')
   +'<div class="sub" style="margin-top:8px">'+(c.active?'Running'+(c.mode==='parallel'?' ('+(c.dialing_now||0)+' of '+(c.max_lines||3)+' lines dialing)':'')+' | ':'Stopped | ')+'Miami '+esc(ST.et)+' | '+esc(ST.me||'')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>'}
 function drawTabs(){$("tabs").innerHTML='<div class="tb"><a href="#" class="'+(TAB==="script"?"on":"")+'" onclick="TAB=\'script\';DRAWN=\'\';draw(true);return false">Script</a><a href="#" class="'+(TAB==="prospect"?"on":"")+'" onclick="TAB=\'prospect\';DRAWN=\'\';draw(true);return false">Prospect</a></div>'}
 function L(s){return '<div class="say">'+s+'</div>'}
