@@ -96,9 +96,9 @@ function logout(){var t=TOK;TOK="";try{localStorage.removeItem("lgcs")}catch(x){
 /* ---------- data ---------- */
 function start(){$("auth").style.display="none";$("app").style.display="block";refresh(true);if(!TIMER)TIMER=setInterval(function(){if(!document.hidden)refresh()},5000)}
 function refresh(force){if(!TOK){showLogin();return}
- Promise.all([dpost("lg_dialer_state",{p_pin:TOK}),dpost("lg_dialer_current",{p_pin:TOK})]).then(function(a){
+ Promise.all([dpost("lg_dialer_state",{p_pin:TOK}),dpost("lg_dialer_current",{p_pin:TOK}),dpost("lg_dialer_manual",{p_tok:TOK,p_action:"next",p_args:{}})]).then(function(a){
   if(a[0].error||a[1].error){TOK="";try{localStorage.removeItem("lgcs")}catch(x){}showLogin("Please sign in again.");return}
-  ST=a[0];CUR=a[1].none?null:a[1];draw(force)}).catch(function(e){$("bar").innerHTML='<div class="err">Connection problem: '+esc(e.message)+'</div>'})}
+  ST=a[0];MAN=a[2]&&!a[2].error?a[2]:{none:true,count:0};if(MAN.state==="manual")MODE="direct";BOTCUR=a[1].none?null:a[1];CUR=MODE==="direct"?(MAN.none?null:MAN):BOTCUR;draw(force)}).catch(function(e){$("bar").innerHTML='<div class="err">Connection problem: '+esc(e.message)+'</div>'})}
 
 /* ---------- actions ---------- */
 function act(a,args){if(BUSY)return;BUSY=true;drawBar();
@@ -106,7 +106,9 @@ function act(a,args){if(BUSY)return;BUSY=true;drawBar();
  if(CUR&&CUR.call_id&&notes.trim()&&notes!==SAVEDNOTE)p=saveNote().catch(function(){});
  p.then(function(){return dpost("lg_dialer_control",{p_pin:TOK,p_action:a,p_args:args||{}})}).then(function(r){BUSY=false;if(r&&r.error)alert(r.error);DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert("Failed: "+e.message);refresh(true)})}
 function doCall(){if(!ST)return;if(!ST.config.active)act("start");else act("next",CUR&&CUR.call_id?{call_id:CUR.call_id}:{})}
-function doPostpone(){if(!CUR)return;act("postpone",CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id})}
+function doPostpone(){if(!CUR)return;if(MODE==="direct"){if(BUSY)return;BUSY=true;var v=$("cnotes")?$("cnotes").value:"";var pr=(CUR.call_id&&v.trim()&&v!==SAVEDNOTE)?saveNote():Promise.resolve();
+ pr.then(function(){return dpost("lg_dialer_manual",{p_tok:TOK,p_action:"postpone",p_args:CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id}})}).then(function(){BUSY=false;DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert(e.message)});return}
+ act("postpone",CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id})}
 function doStop(){act("stop")}
 
 /* ---------- render ---------- */
@@ -119,8 +121,24 @@ function drawPhone(){var e=$("myph");if(e&&document.activeElement===e)return;var
  $("phone").innerHTML='<div class="card" style="margin-bottom:10px'+(v?'':';border-color:#d29922')+'"><div class="sub">'+(v?'Live people are put through to your phone:':'<b style="color:#d29922">Enter your phone number to start calling</b>')+'</div>'
  +'<div style="display:flex;gap:8px;align-items:center"><input id="myph" class="fi" type="tel" inputmode="tel" autocomplete="tel" placeholder="+1 305 555 1234" value="'+esc(v)+'" onkeydown="if(event.key===\'Enter\')savePhone()" style="flex:1;margin:6px 0"><button class="cb go" onclick="savePhone()">Save</button></div><div id="phmsg" class="msg"></div></div>'}
 function savePhone(){var v=$("myph").value.trim();if(!v)return;$("phmsg").textContent="Saving...";dpost("lg_caller_set_phone",{p_tok:TOK,p_phone:v}).then(function(r){if(r.error){$("phmsg").textContent=r.error;return}ST.my_phone=r.phone;$("myph").blur();drawPhone();$("phmsg").style.color="#3fb950";$("phmsg").textContent="Saved: "+r.phone;drawBar()}).catch(function(e){$("phmsg").textContent="Failed: "+e.message})}
-function drawBar(){if(!ST)return;var s=stateInfo(),c=ST.config;if(!ST.my_phone){s.canCall=false}
- $("bar").innerHTML='<div class="card"><div class="stl '+s.cls+'">'+s.t+'</div>'
+var MODE="bot",MAN=null,BOTCUR=null;
+function modeSw(){var n=(MAN&&MAN.count)||0;return '<div class="tb" style="margin:0 0 10px;position:static"><a href="#" class="'+(MODE==="bot"?"on":"")+'" onclick="setMode(\'bot\');return false">Bot calls</a><a href="#" class="'+(MODE==="direct"?"on":"")+'" onclick="setMode(\'direct\');return false">Direct calls ('+n+')</a></div>'}
+function setMode(m){if(MAN&&MAN.state==="manual"&&m==="bot"){alert("Finish the open direct call first (Done or Postpone).");return}MODE=m;DRAWN="";CUR=m==="direct"?(MAN&&!MAN.none?MAN:null):BOTCUR;draw(true)}
+function drawBarDirect(){var c=CUR,ph=c?fmtPhone(c.phone):"";
+ var t=!c?"No direct calls waiting":c.state==="manual"?"On a direct call: "+esc(c.contact||c.company):"Next direct call: "+esc(c.contact||c.company);
+ var h='<div class="card">'+modeSw()+'<div class="stl '+(c&&c.state==="manual"?"ok":"")+'">'+t+'</div>'+(c&&c.mode_reason?'<div class="sub">'+esc(c.mode_reason)+'</div>':'');
+ if(c&&c.state==="manual_ready")h+='<div class="btns"><a class="cb go big" style="text-align:center;text-decoration:none" href="tel:'+esc(c.phone)+'" onclick="return startDirect(this)">Call '+esc(ph)+'</a><button class="cb big" '+(BUSY?'disabled':'')+' onclick="doPostpone()">Postpone</button></div>';
+ else if(c&&c.state==="manual")h+='<div class="btns"><button class="cb go big" '+(BUSY?'disabled':'')+' onclick="finishDirect()">Done, next</button><button class="cb big" '+(BUSY?'disabled':'')+' onclick="doPostpone()">Postpone</button></div><div class="sub" style="margin-top:6px">Redial: <a class="lk" href="tel:'+esc(c.phone)+'">'+esc(ph)+'</a></div>';
+ h+='<div class="sub" style="margin-top:8px">You call from your own phone. Miami '+esc(ST.et)+' | '+esc(ST.me||'')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>';
+ $("bar").innerHTML=h}
+function startDirect(a){if(BUSY||!CUR)return false;BUSY=true;
+ fetch(API+"lg_dialer_manual",{method:"POST",keepalive:true,headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({p_tok:TOK,p_action:"start",p_args:{queue_id:CUR.queue_id}})})
+ .then(function(r){return r.json()}).then(function(r){BUSY=false;if(r.error){alert(r.error);return}DRAWN="";refresh(true)}).catch(function(e){BUSY=false;refresh(true)});
+ return true}
+function finishDirect(){if(BUSY||!CUR)return;BUSY=true;drawBar();var v=$("cnotes")?$("cnotes").value:"";var pr=(v.trim()&&v!==SAVEDNOTE)?saveNote():Promise.resolve();
+ pr.then(function(){return dpost("lg_dialer_manual",{p_tok:TOK,p_action:"finish",p_args:{call_id:CUR.call_id}})}).then(function(){BUSY=false;DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert(e.message)})}
+function drawBar(){if(!ST)return;if(MODE==="direct"){drawBarDirect();return}var s=stateInfo(),c=ST.config;if(!ST.my_phone){s.canCall=false}
+ $("bar").innerHTML='<div class="card">'+modeSw()+'<div class="stl '+s.cls+'">'+s.t+'</div>'
   +'<div class="btns"><button class="cb go big" '+((s.canCall&&!BUSY)?'':'disabled')+' onclick="doCall()">'+(BUSY?'...':'Call')+'</button>'
   +'<button class="cb big" '+((s.canPost&&!BUSY)?'':'disabled')+' onclick="doPostpone()">Postpone</button></div>'
   +'<div class="sub" style="margin-top:8px">'+(c.active?'Running | <a href="#" class="lk" onclick="doStop();return false">Stop</a> | ':'Stopped | ')+'Miami '+esc(ST.et)+' | '+esc(ST.me||'')+' | <a href="#" class="lk" onclick="logout();return false">Sign out</a></div></div>'}
@@ -200,10 +218,10 @@ function listHtml(){var h=H("Next in list ("+((ST.counts||{}).ready||0)+" left)"
 function saveSet(){act("settings",{list_source:$("clist").value})}
 function draw(force){drawPhone();drawBar();drawTabs();
  var ae=document.activeElement,typing=(ae&&(ae.id==="cnotes"||ae.id==="cagent"||ae.id==="clist"))||(REC&&REC.state==="recording")||($("nstat")&&/ing\.\.\./.test($("nstat").textContent));
- var key=TAB+"|"+(CUR?(CUR.call_id||"q"+CUR.queue_id)+"|"+CUR.state:"none");
+ var key=MODE+TAB+"|"+(CUR?(CUR.call_id||"q"+CUR.queue_id)+"|"+CUR.state:"none");
  if(!typing&&(force||key!==DRAWN)){var keep=$("cnotes")&&DRAWN.split("|")[1]===(key.split("|")[1])?$("cnotes").value:null;
-  var h=!CUR?'<div class="card"><div class="empty">Nothing to call. Load the list in Settings below.</div></div>':TAB==="script"?(CUR.source==="offices"?scriptOffice(CUR):scriptOwner(CUR)):prospect(CUR);
-  if(CUR&&CUR.state==="ended"&&TAB==="script")h+=notesBox(CUR);
+  var h=!CUR?'<div class="card"><div class="empty">'+(MODE==="direct"?'No direct calls waiting. Owners the bot finds without a phone menu land here.':'Nothing to call. Load the list in Settings below.')+'</div></div>':TAB==="script"?(CUR.source==="offices"?scriptOffice(CUR):scriptOwner(CUR)):prospect(CUR);
+  if(CUR&&(CUR.state==="ended"||CUR.state==="manual")&&TAB==="script")h+=notesBox(CUR);
   $("pane").innerHTML=h;if(keep!=null&&$("cnotes"))$("cnotes").value=keep;DRAWN=key;window.scrollTo(0,0)}
  if(!typing||force)$("list").innerHTML=listHtml()}
 if(TOK)start();else showLogin();
