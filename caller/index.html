@@ -103,7 +103,7 @@ function refresh(force){if(!TOK){showLogin();return}
 /* ---------- actions ---------- */
 function act(a,args){if(BUSY)return;BUSY=true;drawBar();
  var notes=$("cnotes")?$("cnotes").value:"";var p=Promise.resolve();
- if(CUR&&CUR.call_id&&notes.trim())p=dpost("lg_dialer_note",{p_pin:TOK,p_call_id:CUR.call_id,p_note:{notes:notes}}).catch(function(){});
+ if(CUR&&CUR.call_id&&notes.trim()&&notes!==SAVEDNOTE)p=saveNote().catch(function(){});
  p.then(function(){return dpost("lg_dialer_control",{p_pin:TOK,p_action:a,p_args:args||{}})}).then(function(r){BUSY=false;if(r&&r.error)alert(r.error);DRAWN="";refresh(true)}).catch(function(e){BUSY=false;alert("Failed: "+e.message);refresh(true)})}
 function doCall(){if(!ST)return;if(!ST.config.active)act("start");else act("next",CUR&&CUR.call_id?{call_id:CUR.call_id}:{})}
 function doPostpone(){if(!CUR)return;act("postpone",CUR.call_id?{call_id:CUR.call_id}:{queue_id:CUR.queue_id})}
@@ -169,7 +169,25 @@ function prospect(c){var s=c.sig||{},sg=signals(c);
  h+=H("Signals")+(sg.length?sg.map(function(g,i){return '<div class="tag">Signal '+(i+1)+': '+g.t+'</div>'}).join(""):'<div class="sub">None on record</div>');
  h+=H("Who we call for")+'<div class="card">Vertical: Property management<br>Client: KHI Real Estate (Derek Knutson, CEO)<br>Looking for: owners of 50 to 300 unit apartment buildings in Miami, Fort Myers, Tampa, Jacksonville<br>Goal: book a short intro call with the property manager, no cost to the owner</div>';
  return h}
-function notesBox(c){var v=(c.notes&&c.notes.notes)||"";return '<div class="card" style="margin-top:14px"><div class="sub" style="margin-bottom:6px">What was said (saved when you press Call or Postpone)</div><textarea id="cnotes" rows="4" class="fi">'+esc(v)+'</textarea></div>'}
+function aiChip(ai){if(!ai)return "";var col=ai.sentiment==="positive"?"#3fb950":ai.sentiment==="negative"?"#f85149":"#d29922";
+ return '<div style="margin-top:8px;font-size:15px"><b style="color:'+col+'">'+esc((ai.sentiment||"").toUpperCase())+'</b> | '+esc((ai.category||"").replace(/_/g," "))+(ai.lead?' | <b style="color:#3fb950">LEAD</b>':'')+'<div class="sub">'+esc(ai.summary||"")+(ai.next_step?'<br>Next: '+esc(ai.next_step):'')+'</div></div>'}
+function notesBox(c){var n=c.notes||{},v=n.notes||"";SAVEDNOTE=v;
+ return '<div class="card" style="margin-top:14px"><div class="sub" style="margin-bottom:6px">What was said (type or dictate)</div><textarea id="cnotes" rows="4" class="fi">'+esc(v)+'</textarea>'
+ +'<div style="display:flex;gap:8px"><button id="micb" class="cb big" style="flex:1" onclick="toggleMic()">Dictate</button><button class="cb go big" style="flex:1" onclick="saveNote()">Save note</button></div>'
+ +'<div id="nstat" class="sub" style="margin-top:6px"></div><div id="aiout">'+aiChip(n.ai)+'</div></div>'}
+var SAVEDNOTE="",REC=null,CHUNKS=[],RECSTREAM=null;
+function saveNote(cb){if(!CUR||!CUR.call_id)return Promise.resolve();var v=$("cnotes")?$("cnotes").value:"";if(!v.trim()){if($("nstat"))$("nstat").textContent="Nothing to save";return Promise.resolve()}
+ if($("nstat"))$("nstat").textContent="Saving and classifying...";
+ return dpost("lg_dialer_note",{p_pin:TOK,p_call_id:CUR.call_id,p_note:{notes:v}}).then(function(r){if(r.error){$("nstat").textContent=r.error;return}SAVEDNOTE=v;if($("nstat"))$("nstat").textContent="Saved";if($("aiout"))$("aiout").innerHTML=aiChip(r.ai)}).catch(function(e){if($("nstat"))$("nstat").textContent="Not saved: "+e.message})}
+function toggleMic(){if(REC&&REC.state==="recording"){REC.stop();return}
+ if(!navigator.mediaDevices||!window.MediaRecorder){$("nstat").textContent="Dictation not supported in this browser. Use the keyboard mic.";return}
+ navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){RECSTREAM=s;CHUNKS=[];var mt=["audio/webm;codecs=opus","audio/webm","audio/mp4"].filter(function(t){return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t)})[0]||"";
+  REC=mt?new MediaRecorder(s,{mimeType:mt}):new MediaRecorder(s);REC.ondataavailable=function(e){if(e.data&&e.data.size)CHUNKS.push(e.data)};
+  REC.onstop=function(){RECSTREAM.getTracks().forEach(function(t){t.stop()});$("micb").textContent="Dictate";$("micb").classList.remove("go");sendAudio(new Blob(CHUNKS,{type:REC.mimeType||"audio/webm"}))};
+  REC.start();$("micb").textContent="Stop and transcribe";$("micb").classList.add("go");$("nstat").textContent="Listening... speak, then tap Stop"}).catch(function(e){$("nstat").textContent="Microphone blocked: "+e.message})}
+function sendAudio(b){$("nstat").textContent="Transcribing...";var fd=new FormData();fd.append("tok",TOK);fd.append("file",b,/mp4/.test(b.type)?"note.m4a":"note.webm");
+ fetch(API.replace("/rest/v1/rpc/","/functions/v1/caller-stt"),{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K},body:fd}).then(function(r){return r.json()}).then(function(r){
+  if(r.error){$("nstat").textContent=r.error;return}var t=$("cnotes");t.value=(t.value.trim()?t.value.trim()+" ":"")+r.text;$("nstat").textContent="Added. Tap Save note.";}).catch(function(e){$("nstat").textContent="Transcription failed: "+e.message})}
 function listHtml(){var h=H("Next in list ("+((ST.counts||{}).ready||0)+" left)")+'<div class="ll">';
  (ST.queue||[]).forEach(function(q){h+='<div class="it"><b>'+esc(q.contact||q.name)+'</b> <span class="sub">'+esc(q.name)+' | '+esc(q.place||"")+'</span></div>'});
  h+='</div>'+H("Today: "+((ST.today||{}).dialed||0)+" dialed, "+((ST.today||{}).connected||0)+" talked")+'<div class="ll">';
@@ -181,7 +199,7 @@ function listHtml(){var h=H("Next in list ("+((ST.counts||{}).ready||0)+" left)"
  return h}
 function saveSet(){act("settings",{list_source:$("clist").value})}
 function draw(force){drawPhone();drawBar();drawTabs();
- var ae=document.activeElement,typing=ae&&(ae.id==="cnotes"||ae.id==="cagent"||ae.id==="clist");
+ var ae=document.activeElement,typing=(ae&&(ae.id==="cnotes"||ae.id==="cagent"||ae.id==="clist"))||(REC&&REC.state==="recording")||($("nstat")&&/ing\.\.\./.test($("nstat").textContent));
  var key=TAB+"|"+(CUR?(CUR.call_id||"q"+CUR.queue_id)+"|"+CUR.state:"none");
  if(!typing&&(force||key!==DRAWN)){var keep=$("cnotes")&&DRAWN.split("|")[1]===(key.split("|")[1])?$("cnotes").value:null;
   var h=!CUR?'<div class="card"><div class="empty">Nothing to call. Load the list in Settings below.</div></div>':TAB==="script"?(CUR.source==="offices"?scriptOffice(CUR):scriptOwner(CUR)):prospect(CUR);
